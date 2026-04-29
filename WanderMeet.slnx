@@ -1,0 +1,11 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/WanderMeet.Api/WanderMeet.Api.csproj" />
+    <Project Path="src/WanderMeet.Infrastructure/WanderMeet.Infrastructure.csproj" />
+    <Project Path="src/WanderMeet.Shared/WanderMeet.Shared.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/WanderMeet.Api.IntegrationTests/WanderMeet.Api.IntegrationTests.csproj" />
+    <Project Path="tests/WanderMeet.Api.UnitTests/WanderMeet.Api.UnitTests.csproj" />
+  </Folder>
+</Solution>

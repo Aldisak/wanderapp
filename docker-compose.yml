@@ -1,0 +1,21 @@
+services:
+  postgres:
+    image: postgis/postgis:17-3.5
+    container_name: wandermeet-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: wandermeet
+      POSTGRES_USER: wandermeet
+      POSTGRES_PASSWORD: wandermeet
+    ports:
+      - "5432:5432"
+    volumes:
+      - wandermeet-pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U wandermeet -d wandermeet"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  wandermeet-pgdata:
