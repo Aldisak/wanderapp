@@ -17,7 +17,7 @@ This is the complete build brief for Claude Code. It contains the full technical
 
 ## Technical Architecture
 
-### Backend — .NET 8 / FastEndpoints / Vertical Slice Architecture
+### Backend — .NET 10 / FastEndpoints / Vertical Slice Architecture
 
 | Concern | Decision |
 |---|---|

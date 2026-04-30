@@ -22,10 +22,11 @@ builder.Host.UseSerilog((ctx, cfg) => cfg
 
 builder.Services.AddSingleton(TimeProvider.System);
 
-builder.Services.AddDbContext<WanderMeetDbContext>(options =>
-    options.UseNpgsql(
+builder.Services.AddDbContext<WanderMeetDbContext>(options => options
+    .UseNpgsql(
         builder.Configuration.GetConnectionString("DefaultConnection"),
-        npgsql => npgsql.UseNetTopologySuite()));
+        npgsql => npgsql.UseNetTopologySuite())
+    .UseSnakeCaseNamingConvention());
 
 builder.Services.AddCors(options =>
 {
