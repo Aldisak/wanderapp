@@ -177,7 +177,7 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerGen();
 }
 
-app.Run();
+await app.RunAsync();
 
 return;
 

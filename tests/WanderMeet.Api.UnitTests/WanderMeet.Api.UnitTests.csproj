@@ -11,7 +11,10 @@
     <ProjectReference Include="..\..\src\WanderMeet.Shared\WanderMeet.Shared.csproj" />
   </ItemGroup>
 
+  <!-- Force EF Core Relational to match the version used by WanderMeet.Api (avoids MSB3277 / ReflectionTypeLoadException). -->
   <ItemGroup>
+    <PackageReference Include="FluentValidation" Version="12.1.1" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="10.0.7" />
     <PackageReference Include="FakeItEasy" Version="9.0.1" />
     <PackageReference Include="FastEndpoints.Testing" Version="8.1.0" />
     <PackageReference Include="FluentAssertions" Version="7.2.0" />
