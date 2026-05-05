@@ -43,7 +43,7 @@ public class RefreshEndpointTests
     [Fact]
     public async Task HandleAsync_B2CTokenEndpointReturnsNonSuccess_Returns401AndDoesNotLeakUpstreamBody()
     {
-        const string upstreamBody = "upstream-secret-error-details";
+        const string UPSTREAM_BODY = "upstream-secret-error-details";
 
         var options = Microsoft.Extensions.Options.Options.Create(new AzureAdB2COptions
         {
@@ -56,7 +56,7 @@ public class RefreshEndpointTests
         var fakeHandler = new FakeHttpMessageHandler(
             new HttpResponseMessage(HttpStatusCode.BadRequest)
             {
-                Content = new StringContent(upstreamBody, Encoding.UTF8, "application/json"),
+                Content = new StringContent(UPSTREAM_BODY, Encoding.UTF8, "application/json"),
             });
 
         var httpClient = new HttpClient(fakeHandler);
@@ -76,7 +76,7 @@ public class RefreshEndpointTests
         ep.HttpContext.Response.Body.Seek(0, System.IO.SeekOrigin.Begin);
         using var reader = new System.IO.StreamReader(ep.HttpContext.Response.Body);
         var responseBodyText = await reader.ReadToEndAsync(TestContext.Current.CancellationToken);
-        responseBodyText.Should().NotContain(upstreamBody);
+        responseBodyText.Should().NotContain(UPSTREAM_BODY);
     }
 
     /// <summary>Helper: returns a fixed <see cref="HttpResponseMessage"/> for any request.</summary>

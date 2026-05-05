@@ -17,13 +17,13 @@ public class RefreshEndpointTests(IntegrationTestFixture app) : IntegrationTestB
     [Fact]
     public async Task HandleAsync_ValidRefreshToken_Returns200WithAccessAndRefreshTokens()
     {
-        const string fakeAccessToken = "fake-access-token-value";
-        const string fakeRefreshToken = "fake-refresh-token-value";
+        const string FAKE_ACCESS_TOKEN = "fake-access-token-value";
+        const string FAKE_REFRESH_TOKEN = "fake-refresh-token-value";
 
         var b2cResponsePayload = JsonSerializer.Serialize(new
         {
-            access_token = fakeAccessToken,
-            refresh_token = fakeRefreshToken,
+            access_token = FAKE_ACCESS_TOKEN,
+            refresh_token = FAKE_REFRESH_TOKEN,
         });
 
         var fakeHandler = new FakeB2CHttpMessageHandler(
@@ -46,15 +46,15 @@ public class RefreshEndpointTests(IntegrationTestFixture app) : IntegrationTestB
         var body = await response.Content.ReadFromJsonAsync<RefreshResponse>(
             cancellationToken: TestContext.Current.CancellationToken);
         body.Should().NotBeNull();
-        body!.AccessToken.Should().Be(fakeAccessToken);
-        body.RefreshToken.Should().Be(fakeRefreshToken);
+        body!.AccessToken.Should().Be(FAKE_ACCESS_TOKEN);
+        body.RefreshToken.Should().Be(FAKE_REFRESH_TOKEN);
     }
 
     /// <summary>Rate limit exceeded (11 calls) → last call returns 429.</summary>
     [Fact]
     public async Task HandleAsync_RateLimitExceeded_Returns429()
     {
-        const string rateLimitTestIp = "10.0.11.1";
+        const string RATE_LIMIT_TEST_IP = "10.0.11.1";
 
         var b2cResponsePayload = JsonSerializer.Serialize(new
         {
@@ -70,7 +70,7 @@ public class RefreshEndpointTests(IntegrationTestFixture app) : IntegrationTestB
 
         // Reuse the same client so all calls share the same rate-limit counter
         using var client = App.CreateClientWithB2CHandler(fakeHandler);
-        client.DefaultRequestHeaders.Add("X-Forwarded-For", rateLimitTestIp);
+        client.DefaultRequestHeaders.Add("X-Forwarded-For", RATE_LIMIT_TEST_IP);
 
         HttpResponseMessage? lastResponse = null;
 

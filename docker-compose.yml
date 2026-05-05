@@ -17,5 +17,16 @@ services:
       timeout: 5s
       retries: 5
 
+  azurite:
+    image: mcr.microsoft.com/azure-storage/azurite:latest
+    container_name: wandermeet-azurite
+    restart: unless-stopped
+    command: "azurite-blob --blobHost 0.0.0.0 --blobPort 10000 --location /data --skipApiVersionCheck"
+    ports:
+      - "10000:10000"
+    volumes:
+      - wandermeet-azurite:/data
+
 volumes:
   wandermeet-pgdata:
+  wandermeet-azurite:

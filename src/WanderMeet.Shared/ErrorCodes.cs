@@ -28,4 +28,46 @@ public static class ErrorCodes
         /// <summary>The Azure AD B2C configuration section is missing required keys.</summary>
         public const string B2CNotConfigured = "Auth.B2CNotConfigured";
     }
+
+    /// <summary>User-domain error codes.</summary>
+    public static class User
+    {
+        /// <summary>No local user profile exists for the authenticated identity.</summary>
+        public const string NotRegistered = "User.NotRegistered";
+    }
+
+    /// <summary>Additional validation error codes for user-profile operations.</summary>
+    public static class UserValidation
+    {
+        /// <summary>User's bio exceeded the maximum allowed length.</summary>
+        public const string BioTooLong = "Validation.BioTooLong";
+
+        /// <summary>More than 5 hangout tag IDs were supplied.</summary>
+        public const string HangoutTagIdsTooMany = "Validation.HangoutTagIdsTooMany";
+
+        /// <summary>Duplicate hangout tag IDs were supplied.</summary>
+        public const string HangoutTagIdsDuplicate = "Validation.HangoutTagIdsDuplicate";
+
+        /// <summary>One or more supplied hangout tag IDs do not exist.</summary>
+        public const string HangoutTagIdNotFound = "Validation.HangoutTagIdNotFound";
+
+        /// <summary>City id was empty or refers to a non-existent city.</summary>
+        public const string CityIdNotFound = "Validation.CityIdNotFound";
+
+        /// <summary>Arrived-at timestamp was in the future.</summary>
+        public const string ArrivedAtInFuture = "Validation.ArrivedAtInFuture";
+
+        /// <summary>Departed-at timestamp was earlier than arrived-at.</summary>
+        public const string DepartedAtBeforeArrived = "Validation.DepartedAtBeforeArrived";
+
+        /// <summary>Departed-at timestamp was in the future.</summary>
+        public const string DepartedAtInFuture = "Validation.DepartedAtInFuture";
+    }
+
+    /// <summary>UserCity-domain error codes.</summary>
+    public static class UserCity
+    {
+        /// <summary>Travel-history record was not found for this user.</summary>
+        public const string NotFound = "UserCity.NotFound";
+    }
 }

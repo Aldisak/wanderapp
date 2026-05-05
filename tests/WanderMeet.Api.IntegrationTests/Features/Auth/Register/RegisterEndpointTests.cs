@@ -19,8 +19,8 @@ public class RegisterEndpointTests(IntegrationTestFixture app) : IntegrationTest
     [Fact]
     public async Task HandleAsync_FirstRegistration_Returns201AndPersistsUser()
     {
-        const string sub = "oid|test-register-happy";
-        var client = App.CreateAuthenticatedClient(sub);
+        const string SUB = "oid|test-register-happy";
+        var client = App.CreateAuthenticatedClient(SUB);
         client.DefaultRequestHeaders.Add("X-Forwarded-For", "10.0.1.1");
         var expectedNow = App.FakeTimeProvider.GetUtcNow();
 
@@ -43,12 +43,12 @@ public class RegisterEndpointTests(IntegrationTestFixture app) : IntegrationTest
         var db = scope.ServiceProvider.GetRequiredService<WanderMeetDbContext>();
         var user = await db.Users
             .AsNoTracking()
-            .FirstOrDefaultAsync(u => u.AzureAdB2CId == sub, TestContext.Current.CancellationToken);
+            .FirstOrDefaultAsync(u => u.AzureAdB2CId == SUB, TestContext.Current.CancellationToken);
 
         user.Should().NotBeNull();
         user!.FirstName.Should().Be("Alice");
         user.LastActiveAt.Should().Be(expectedNow);
-        user.AzureAdB2CId.Should().Be(sub);
+        user.AzureAdB2CId.Should().Be(SUB);
     }
 
     /// <summary>No bearer token → 401.</summary>
@@ -70,8 +70,8 @@ public class RegisterEndpointTests(IntegrationTestFixture app) : IntegrationTest
     [Fact]
     public async Task HandleAsync_DuplicateAzureAdB2CId_Returns409WithAuthAlreadyRegistered()
     {
-        const string sub = "oid|test-register-duplicate";
-        var client = App.CreateAuthenticatedClient(sub);
+        const string SUB = "oid|test-register-duplicate";
+        var client = App.CreateAuthenticatedClient(SUB);
         client.DefaultRequestHeaders.Add("X-Forwarded-For", "10.0.1.3");
 
         // First registration
@@ -97,7 +97,7 @@ public class RegisterEndpointTests(IntegrationTestFixture app) : IntegrationTest
     public async Task HandleAsync_RateLimitExceeded_Returns429WithRetryAfter()
     {
         // Use a dedicated IP for the rate-limit test to isolate it from other tests
-        const string rateLimitTestIp = "10.0.2.1";
+        const string RATE_LIMIT_TEST_IP = "10.0.2.1";
         HttpResponseMessage? lastResponse = null;
 
         for (var i = 0; i <= 10; i++)
@@ -105,7 +105,7 @@ public class RegisterEndpointTests(IntegrationTestFixture app) : IntegrationTest
             // Each call uses a unique sub to avoid 409, allowing us to hit the rate limit
             var callSub = $"oid|test-register-ratelimit-{i}";
             var client = App.CreateAuthenticatedClient(callSub);
-            client.DefaultRequestHeaders.Add("X-Forwarded-For", rateLimitTestIp);
+            client.DefaultRequestHeaders.Add("X-Forwarded-For", RATE_LIMIT_TEST_IP);
             lastResponse = await client.PostAsJsonAsync(
                 "api/v1/auth/register",
                 new { FirstName = $"User{i}" },
