@@ -8,6 +8,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\WanderMeet.Api\WanderMeet.Api.csproj" />
+    <ProjectReference Include="..\..\src\WanderMeet.Infrastructure\WanderMeet.Infrastructure.csproj" />
     <ProjectReference Include="..\..\src\WanderMeet.Shared\WanderMeet.Shared.csproj" />
   </ItemGroup>
 

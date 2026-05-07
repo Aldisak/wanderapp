@@ -17,18 +17,25 @@ namespace WanderMeet.Api.IntegrationTests.Infrastructure;
 public sealed class WanderMeetApiFactory : WebApplicationFactory<Program>
 {
     private readonly string _connectionString;
+    private readonly string _blobConnectionString;
     private readonly TestJwtTokenFactory _jwtFactory;
 
-    /// <summary>The fake time provider registered in the test application.</summary>
-    public FakeTimeProvider FakeTimeProvider { get; } = new();
+    /// <summary>
+    /// The fake time provider registered in the test application. Initialised to real "now"
+    /// so signed assets like Azure Blob SAS URIs validate against Azurite's wall-clock —
+    /// the default <see cref="FakeTimeProvider"/> seed is 2000-01-01, which would produce
+    /// a SAS that expired 25+ years ago.
+    /// </summary>
+    public FakeTimeProvider FakeTimeProvider { get; } = new(DateTimeOffset.UtcNow);
 
     /// <summary>The JWT factory whose public key is configured into JwtBearer.</summary>
     public TestJwtTokenFactory JwtFactory => _jwtFactory;
 
-    /// <summary>Initialises the factory with the Testcontainers connection string.</summary>
-    public WanderMeetApiFactory(string connectionString, TestJwtTokenFactory jwtFactory)
+    /// <summary>Initialises the factory with the Testcontainers connection strings.</summary>
+    public WanderMeetApiFactory(string connectionString, string blobConnectionString, TestJwtTokenFactory jwtFactory)
     {
         _connectionString = connectionString;
+        _blobConnectionString = blobConnectionString;
         _jwtFactory = jwtFactory;
     }
 
@@ -36,6 +43,8 @@ public sealed class WanderMeetApiFactory : WebApplicationFactory<Program>
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
         builder.UseSetting("ConnectionStrings:DefaultConnection", _connectionString);
+        builder.UseSetting("BlobStorage:ConnectionString", _blobConnectionString);
+        builder.UseSetting("BlobStorage:ContainerName", "user-photos-tests");
 
         // Provide minimal AzureAdB2C config so the endpoint does not return 503 in integration tests.
         // Individual tests that need the real B2C call swap the handler via CreateClientWithB2CHandler.

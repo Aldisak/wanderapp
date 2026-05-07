@@ -17,6 +17,10 @@ internal sealed class UserPhotoConfiguration : IEntityTypeConfiguration<UserPhot
 
         builder.Property(x => x.BlobUrl).IsRequired();
 
-        builder.HasIndex(x => new { x.UserId, x.Order }).IsUnique();
+        // Partial unique index: soft-deleted photos do not occupy a slot, so the user
+        // can re-upload to the same Order after deleting an earlier photo.
+        builder.HasIndex(x => new { x.UserId, x.Order })
+            .IsUnique()
+            .HasFilter("\"deleted_at\" IS NULL");
     }
 }

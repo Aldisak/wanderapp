@@ -17,6 +17,15 @@ public static class ErrorCodes
 
         /// <summary>Refresh token was missing or whitespace-only.</summary>
         public const string RefreshTokenRequired = "Validation.RefreshTokenRequired";
+
+        /// <summary>The photo order slot is out of the valid range (0 to MaxPhotosPerUser-1).</summary>
+        public const string PhotoOrderOutOfRange = "Validation.PhotoOrderOutOfRange";
+
+        /// <summary>The user has already reached the maximum number of photos.</summary>
+        public const string PhotoLimitReached = "Validation.PhotoLimitReached";
+
+        /// <summary>The requested photo order slot is already occupied by an active photo.</summary>
+        public const string PhotoOrderTaken = "Validation.PhotoOrderTaken";
     }
 
     /// <summary>Auth-domain error codes.</summary>
@@ -34,6 +43,20 @@ public static class ErrorCodes
     {
         /// <summary>No local user profile exists for the authenticated identity.</summary>
         public const string NotRegistered = "User.NotRegistered";
+    }
+
+    /// <summary>Storage-domain error codes.</summary>
+    public static class Storage
+    {
+        /// <summary>Blob storage is not configured (connection string is missing or empty).</summary>
+        public const string NotConfigured = "Storage.NotConfigured";
+    }
+
+    /// <summary>UserPhoto-domain error codes.</summary>
+    public static class UserPhoto
+    {
+        /// <summary>The requested photo was not found or is not owned by the caller.</summary>
+        public const string NotFound = "UserPhoto.NotFound";
     }
 
     /// <summary>Additional validation error codes for user-profile operations.</summary>

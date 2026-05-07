@@ -1,4 +1,5 @@
 using WanderMeet.Api.Common;
+using WanderMeet.Infrastructure.Blob;
 
 namespace WanderMeet.Api.Features.Users;
 
@@ -10,5 +11,5 @@ internal sealed class UsersFeatureConfiguration : IFeatureConfiguration
 
     /// <inheritdoc />
     public IServiceCollection AddFeatureDependencies(IServiceCollection services, IConfiguration configuration)
-        => services;
+        => services.AddAzureBlobStorage(configuration);
 }

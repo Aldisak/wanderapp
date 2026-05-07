@@ -3,6 +3,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Time.Testing;
 using Respawn;
 using System.Net.Http.Headers;
+using Testcontainers.Azurite;
 using Testcontainers.PostgreSql;
 using WanderMeet.Api.Infrastructure.EntityFramework;
 using Xunit;
@@ -10,13 +11,16 @@ using Xunit;
 namespace WanderMeet.Api.IntegrationTests.Infrastructure;
 
 /// <summary>
-/// Async-lifetime fixture that owns the PostgreSQL Testcontainer, applies EF migrations once,
+/// Async-lifetime fixture that owns the PostgreSQL and Azurite Testcontainers, applies EF migrations once,
 /// and exposes helpers for resetting state between tests.
 /// Shared across all tests in the <see cref="TestConstants.Collections.PipelineTest"/> collection.
 /// </summary>
 public sealed class IntegrationTestFixture : IAsyncLifetime
 {
     private readonly PostgreSqlContainer _postgres = new PostgreSqlBuilder("postgis/postgis:17-3.5")
+        .Build();
+
+    private readonly AzuriteContainer _azurite = new AzuriteBuilder("mcr.microsoft.com/azure-storage/azurite:3.35.0")
         .Build();
 
     private Respawner _respawner = null!;
@@ -29,12 +33,15 @@ public sealed class IntegrationTestFixture : IAsyncLifetime
     /// <summary>The <see cref="FakeTimeProvider"/> registered in the test application; used for deterministic time assertions.</summary>
     public FakeTimeProvider FakeTimeProvider => _factory.FakeTimeProvider;
 
-    /// <summary>Initialises the container, runs EF migrations, and configures Respawn.</summary>
+    /// <summary>The Azurite blob storage connection string for direct SDK calls in tests.</summary>
+    public string BlobConnectionString => _azurite.GetConnectionString();
+
+    /// <summary>Initialises the containers, runs EF migrations, and configures Respawn.</summary>
     public async ValueTask InitializeAsync()
     {
-        await _postgres.StartAsync();
+        await Task.WhenAll(_postgres.StartAsync(), _azurite.StartAsync());
 
-        _factory = new WanderMeetApiFactory(_postgres.GetConnectionString(), _jwtFactory);
+        _factory = new WanderMeetApiFactory(_postgres.GetConnectionString(), _azurite.GetConnectionString(), _jwtFactory);
 
         // Apply EF Core migrations via the test factory's service provider
         using var scope = _factory.Services.CreateScope();
@@ -81,10 +88,11 @@ public sealed class IntegrationTestFixture : IAsyncLifetime
         return client;
     }
 
-    /// <summary>Stops the PostgreSQL container.</summary>
+    /// <summary>Stops the PostgreSQL and Azurite containers.</summary>
     public async ValueTask DisposeAsync()
     {
         await _factory.DisposeAsync();
         await _postgres.DisposeAsync();
+        await _azurite.DisposeAsync();
     }
 }
