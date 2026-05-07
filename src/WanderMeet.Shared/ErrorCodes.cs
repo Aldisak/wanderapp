@@ -12,6 +12,18 @@ public static class ErrorCodes
         /// <summary>User's first name was missing or whitespace-only.</summary>
         public const string FirstNameRequired = "Validation.FirstNameRequired";
 
+        /// <summary>CityId query parameter is empty.</summary>
+        public const string CityIdRequired = "Validation.CityIdRequired";
+
+        /// <summary>Limit query parameter is outside the allowed 1–50 range.</summary>
+        public const string LimitOutOfRange = "Validation.LimitOutOfRange";
+
+        /// <summary>HangoutTagSlug query parameter is not a recognised enum value.</summary>
+        public const string HangoutTagSlugInvalid = "Validation.HangoutTagSlugInvalid";
+
+        /// <summary>Cursor query parameter is not a valid base64-encoded cursor.</summary>
+        public const string CursorMalformed = "Validation.CursorMalformed";
+
         /// <summary>User's first name exceeded the maximum allowed length.</summary>
         public const string FirstNameTooLong = "Validation.FirstNameTooLong";
 
@@ -92,5 +104,12 @@ public static class ErrorCodes
     {
         /// <summary>Travel-history record was not found for this user.</summary>
         public const string NotFound = "UserCity.NotFound";
+    }
+
+    /// <summary>Discovery-domain error codes.</summary>
+    public static class Discovery
+    {
+        /// <summary>The requested city was not found or is soft-deleted.</summary>
+        public const string CityNotFound = "Discovery.CityNotFound";
     }
 }

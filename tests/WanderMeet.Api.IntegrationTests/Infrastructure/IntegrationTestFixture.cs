@@ -55,6 +55,7 @@ public sealed class IntegrationTestFixture : IAsyncLifetime
         {
             DbAdapter = DbAdapter.Postgres,
             SchemasToInclude = ["public"],
+            TablesToIgnore = [new Respawn.Graph.Table("spatial_ref_sys")],
         });
     }
 
