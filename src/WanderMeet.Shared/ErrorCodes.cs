@@ -38,6 +38,12 @@ public static class ErrorCodes
 
         /// <summary>The requested photo order slot is already occupied by an active photo.</summary>
         public const string PhotoOrderTaken = "Validation.PhotoOrderTaken";
+
+        /// <summary>Search query is shorter than the minimum allowed length (2 characters).</summary>
+        public const string SearchQueryTooShort = "Validation.SearchQueryTooShort";
+
+        /// <summary>Search query exceeds the maximum allowed length (120 characters).</summary>
+        public const string SearchQueryTooLong = "Validation.SearchQueryTooLong";
     }
 
     /// <summary>Auth-domain error codes.</summary>
@@ -111,5 +117,12 @@ public static class ErrorCodes
     {
         /// <summary>The requested city was not found or is soft-deleted.</summary>
         public const string CityNotFound = "Discovery.CityNotFound";
+    }
+
+    /// <summary>City-domain error codes.</summary>
+    public static class City
+    {
+        /// <summary>The requested city was not found or is soft-deleted.</summary>
+        public const string NotFound = "City.NotFound";
     }
 }
