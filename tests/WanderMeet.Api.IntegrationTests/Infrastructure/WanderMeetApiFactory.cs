@@ -6,6 +6,7 @@ using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Http;
 using Microsoft.Extensions.Time.Testing;
 using Microsoft.IdentityModel.Tokens;
+using WanderMeet.Api.Features.Invites.Shared;
 
 namespace WanderMeet.Api.IntegrationTests.Infrastructure;
 
@@ -94,6 +95,23 @@ public sealed class WanderMeetApiFactory : WebApplicationFactory<Program>
                 services.PostConfigure<HttpClientFactoryOptions>("AzureAdB2C", opts =>
                     opts.HttpMessageHandlerBuilderActions.Add(handlerBuilder =>
                         handlerBuilder.PrimaryHandler = b2cHandler))));
+
+        return derived.CreateClient();
+    }
+
+    /// <summary>
+    /// Creates an <see cref="HttpClient"/> whose <see cref="IInviteNotifier"/> registration is
+    /// replaced by <paramref name="notifier"/>. Use a <see cref="RecordingInviteNotifier"/> spy
+    /// to assert notifier interactions or to inject failures (<c>ThrowOnSent</c> / <c>ThrowOnAccepted</c>).
+    /// </summary>
+    public HttpClient CreateClientWithInviteNotifier(IInviteNotifier notifier)
+    {
+        var derived = WithWebHostBuilder(builder =>
+            builder.ConfigureServices(services =>
+            {
+                services.RemoveAll<IInviteNotifier>();
+                services.AddSingleton(notifier);
+            }));
 
         return derived.CreateClient();
     }

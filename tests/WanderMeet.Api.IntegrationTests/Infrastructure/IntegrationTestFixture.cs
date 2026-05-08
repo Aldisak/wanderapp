@@ -5,6 +5,7 @@ using Respawn;
 using System.Net.Http.Headers;
 using Testcontainers.Azurite;
 using Testcontainers.PostgreSql;
+using WanderMeet.Api.Features.Invites.Shared;
 using WanderMeet.Api.Infrastructure.EntityFramework;
 using Xunit;
 
@@ -79,11 +80,31 @@ public sealed class IntegrationTestFixture : IAsyncLifetime
         => _factory.CreateClientWithB2CHandler(b2cHandler);
 
     /// <summary>
+    /// Creates an HTTP client whose <see cref="IInviteNotifier"/> is replaced with the supplied
+    /// instance — typically a <see cref="RecordingInviteNotifier"/> for asserting interactions
+    /// or injecting failures.
+    /// </summary>
+    public HttpClient CreateClientWithInviteNotifier(IInviteNotifier notifier)
+        => _factory.CreateClientWithInviteNotifier(notifier);
+
+    /// <summary>
     /// Creates an HTTP client with a valid Bearer token whose <c>sub</c> claim equals <paramref name="azureAdB2CId"/>.
     /// </summary>
     public HttpClient CreateAuthenticatedClient(string azureAdB2CId)
     {
         var client = _factory.CreateClient();
+        var token = _jwtFactory.CreateToken(azureAdB2CId);
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+        return client;
+    }
+
+    /// <summary>
+    /// Creates an authenticated HTTP client (Bearer for <paramref name="azureAdB2CId"/>)
+    /// whose <see cref="IInviteNotifier"/> is replaced with <paramref name="notifier"/>.
+    /// </summary>
+    public HttpClient CreateAuthenticatedClientWithInviteNotifier(string azureAdB2CId, IInviteNotifier notifier)
+    {
+        var client = _factory.CreateClientWithInviteNotifier(notifier);
         var token = _jwtFactory.CreateToken(azureAdB2CId);
         client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
         return client;

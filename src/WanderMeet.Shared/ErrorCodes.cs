@@ -53,6 +53,18 @@ public static class ErrorCodes
 
         /// <summary>Place category query parameter is not a recognised enum value.</summary>
         public const string PlaceCategoryInvalid = "Validation.PlaceCategoryInvalid";
+
+        /// <summary>Invite receiver id was empty.</summary>
+        public const string ReceiverIdRequired = "Validation.ReceiverIdRequired";
+
+        /// <summary>Invite hangout tag id was empty.</summary>
+        public const string HangoutTagIdRequired = "Validation.HangoutTagIdRequired";
+
+        /// <summary>Invite place id was empty.</summary>
+        public const string PlaceIdRequired = "Validation.PlaceIdRequired";
+
+        /// <summary>Invite id route parameter was empty.</summary>
+        public const string InviteIdRequired = "Validation.InviteIdRequired";
     }
 
     /// <summary>Auth-domain error codes.</summary>
@@ -140,5 +152,33 @@ public static class ErrorCodes
     {
         /// <summary>The requested place was not found or is soft-deleted.</summary>
         public const string NotFound = "Place.NotFound";
+    }
+
+    /// <summary>Invite-domain error codes.</summary>
+    public static class Invite
+    {
+        /// <summary>The specified receiver user was not found or has been soft-deleted.</summary>
+        public const string ReceiverNotFound = "Invite.ReceiverNotFound";
+
+        /// <summary>The specified hangout tag was not found.</summary>
+        public const string HangoutTagNotFound = "Invite.HangoutTagNotFound";
+
+        /// <summary>The specified place was not found.</summary>
+        public const string PlaceNotFound = "Invite.PlaceNotFound";
+
+        /// <summary>Caller attempted to invite themselves.</summary>
+        public const string SelfInviteForbidden = "Invite.SelfInviteForbidden";
+
+        /// <summary>A Pending invite already exists between the caller and the receiver in either direction.</summary>
+        public const string AlreadyPending = "Invite.AlreadyPending";
+
+        /// <summary>The invite has already been resolved (accepted, declined, or expired).</summary>
+        public const string AlreadyResolved = "Invite.AlreadyResolved";
+
+        /// <summary>The place's city does not match the receiver's current city.</summary>
+        public const string PlaceCityMismatch = "Invite.PlaceCityMismatch";
+
+        /// <summary>The invite was not found or the caller is not the receiver.</summary>
+        public const string NotFound = "Invite.NotFound";
     }
 }
