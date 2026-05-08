@@ -44,6 +44,15 @@ public static class ErrorCodes
 
         /// <summary>Search query exceeds the maximum allowed length (120 characters).</summary>
         public const string SearchQueryTooLong = "Validation.SearchQueryTooLong";
+
+        /// <summary>Latitude query parameter is outside the valid range (-90 to 90).</summary>
+        public const string LatOutOfRange = "Validation.LatOutOfRange";
+
+        /// <summary>Longitude query parameter is outside the valid range (-180 to 180).</summary>
+        public const string LngOutOfRange = "Validation.LngOutOfRange";
+
+        /// <summary>Place category query parameter is not a recognised enum value.</summary>
+        public const string PlaceCategoryInvalid = "Validation.PlaceCategoryInvalid";
     }
 
     /// <summary>Auth-domain error codes.</summary>
@@ -124,5 +133,12 @@ public static class ErrorCodes
     {
         /// <summary>The requested city was not found or is soft-deleted.</summary>
         public const string NotFound = "City.NotFound";
+    }
+
+    /// <summary>Place-domain error codes.</summary>
+    public static class Place
+    {
+        /// <summary>The requested place was not found or is soft-deleted.</summary>
+        public const string NotFound = "Place.NotFound";
     }
 }
