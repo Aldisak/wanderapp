@@ -22,6 +22,16 @@ builder.Host.UseSerilog((ctx, cfg) => cfg
 
 builder.Services.AddSingleton(TimeProvider.System);
 
+builder.Services.AddProblemDetails(options =>
+{
+    options.CustomizeProblemDetails = ctx =>
+    {
+        ctx.ProblemDetails.Extensions["traceId"] = ctx.HttpContext.TraceIdentifier;
+    };
+});
+
+builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
+
 builder.Services.AddDbContext<WanderMeetDbContext>(options => options
     .UseNpgsql(
         builder.Configuration.GetConnectionString("DefaultConnection"),
@@ -154,6 +164,8 @@ builder.Services.Configure<ForwardedHeadersOptions>(options =>
 var app = builder.Build();
 
 app.UseForwardedHeaders();
+app.UseMiddleware<CorrelationIdMiddleware>();
+app.UseExceptionHandler();
 
 if (!app.Environment.IsDevelopment())
 {
