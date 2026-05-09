@@ -129,6 +129,24 @@ builder.Services.AddRateLimiter(options =>
             }));
 });
 
+// Fail-fast: in non-Development environments every AzureAdB2C config key MUST be present.
+// Without this the API would silently accept tokens issued for any app in the tenant
+// (security audit finding F2).
+if (!builder.Environment.IsDevelopment())
+{
+    var b2cSection = builder.Configuration.GetSection("AzureAdB2C");
+    string[] requiredKeys = ["Instance", "TenantId", "PolicyId", "ClientId"];
+    var missing = requiredKeys
+        .Where(k => string.IsNullOrWhiteSpace(b2cSection[k]))
+        .ToArray();
+    if (missing.Length > 0)
+    {
+        throw new InvalidOperationException(
+            $"AzureAdB2C configuration is incomplete in environment '{builder.Environment.EnvironmentName}'. " +
+            $"Missing keys: {string.Join(", ", missing)}. JWT validation cannot start safely.");
+    }
+}
+
 builder.Services
     .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
@@ -150,7 +168,10 @@ builder.Services
         options.TokenValidationParameters = new TokenValidationParameters
         {
             ValidateIssuer = true,
-            ValidateAudience = !string.IsNullOrWhiteSpace(audience),
+            // ValidateAudience is hard-coded true. Tests use PostConfigure<JwtBearerOptions>
+            // to flip it false alongside the in-process signing key — production must never
+            // skip the audience check (security audit finding F2).
+            ValidateAudience = true,
             ValidateLifetime = true,
             ValidateIssuerSigningKey = true,
             ValidAlgorithms = [SecurityAlgorithms.RsaSha256],
