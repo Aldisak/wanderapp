@@ -11,14 +11,14 @@ namespace WanderMeet.Api.IntegrationTests.Features.Invites;
 [Collection(TestConstants.Collections.PipelineTest)]
 public class InvitesFeatureConfigurationTests(IntegrationTestFixture app) : IntegrationTestBase(app)
 {
-    /// <summary>IInviteNotifier should be registered as SignalRInviteNotifier (scoped) after WI-2 swap.</summary>
+    /// <summary>IInviteNotifier should be registered as CompositeInviteNotifier after WI-2 swap.</summary>
     [Fact]
-    public void Discover_FeatureConfiguration_RegistersIInviteNotifierAsSignalRNotifier()
+    public void Discover_FeatureConfiguration_RegistersIInviteNotifierAsCompositeInviteNotifier()
     {
         using var scope = App.Services.CreateScope();
         var notifier = scope.ServiceProvider.GetRequiredService<IInviteNotifier>();
 
         notifier.Should().NotBeNull();
-        notifier.Should().BeOfType<SignalRInviteNotifier>();
+        notifier.Should().BeOfType<CompositeInviteNotifier>();
     }
 }

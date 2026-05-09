@@ -126,6 +126,9 @@ public sealed class IntegrationTestFixture : IAsyncLifetime
     /// <summary>The JWT factory used by the fixture; exposed so tests can create tokens for query-string auth.</summary>
     public TestJwtTokenFactory JwtFactory => _jwtFactory;
 
+    /// <summary>The recording FCM client; use to assert push sends or inject failures per test.</summary>
+    public RecordingFcmClient FcmClient => _factory.FcmClient;
+
     /// <summary>Stops the PostgreSQL and Azurite containers.</summary>
     public async ValueTask DisposeAsync()
     {

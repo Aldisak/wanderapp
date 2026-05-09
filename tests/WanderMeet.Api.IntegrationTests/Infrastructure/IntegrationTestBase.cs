@@ -16,5 +16,6 @@ public abstract class IntegrationTestBase(IntegrationTestFixture app) : TestBase
     protected override async ValueTask SetupAsync()
     {
         await App.ResetDatabaseAsync();
+        App.FcmClient.Reset();
     }
 }

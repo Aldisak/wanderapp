@@ -12,13 +12,13 @@ namespace WanderMeet.Api.Features.Invites.Realtime;
 /// SignalR-backed implementation of <see cref="IInviteNotifier"/>.
 /// Pushes invite lifecycle events to connected clients via <see cref="InviteHub"/>.
 /// </summary>
-internal sealed class SignalRInviteNotifier(
+internal class SignalRInviteNotifier(
     IHubContext<InviteHub> hubContext,
     WanderMeetDbContext dbContext,
     ILogger<SignalRInviteNotifier> logger) : IInviteNotifier
 {
     /// <inheritdoc />
-    public async Task InviteSentAsync(Invite invite, CancellationToken ct)
+    public virtual async Task InviteSentAsync(Invite invite, CancellationToken ct)
     {
         logger.LogDebug("SignalRInviteNotifier: pushing InviteReceived for invite {InviteId}", invite.Id);
 
@@ -58,7 +58,7 @@ internal sealed class SignalRInviteNotifier(
     }
 
     /// <inheritdoc />
-    public async Task InviteAcceptedAsync(Invite invite, Guid meetupId, CancellationToken ct)
+    public virtual async Task InviteAcceptedAsync(Invite invite, Guid meetupId, CancellationToken ct)
     {
         logger.LogDebug("SignalRInviteNotifier: pushing InviteAccepted for invite {InviteId}", invite.Id);
 
@@ -70,7 +70,7 @@ internal sealed class SignalRInviteNotifier(
     }
 
     /// <inheritdoc />
-    public async Task InviteDeclinedAsync(Invite invite, CancellationToken ct)
+    public virtual async Task InviteDeclinedAsync(Invite invite, CancellationToken ct)
     {
         logger.LogDebug("SignalRInviteNotifier: pushing InviteDeclined for invite {InviteId}", invite.Id);
 
@@ -82,7 +82,7 @@ internal sealed class SignalRInviteNotifier(
     }
 
     /// <inheritdoc />
-    public async Task InviteExpiredAsync(Invite invite, CancellationToken ct)
+    public virtual async Task InviteExpiredAsync(Invite invite, CancellationToken ct)
     {
         logger.LogDebug("SignalRInviteNotifier: pushing InviteExpired for invite {InviteId}", invite.Id);
 

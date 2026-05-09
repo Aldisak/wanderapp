@@ -10,7 +10,7 @@ namespace WanderMeet.Api.Infrastructure.SignalR;
 /// Authentication is enforced via <see cref="AuthorizationPolicies.UsersOnly"/>.
 /// </summary>
 [Authorize(Policy = nameof(AuthorizationPolicies.UsersOnly))]
-internal sealed class InviteHub(ILogger<InviteHub> logger) : Hub
+internal class InviteHub(ILogger<InviteHub> logger) : Hub
 {
     /// <inheritdoc />
     public override Task OnConnectedAsync()

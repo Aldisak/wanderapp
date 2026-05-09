@@ -9,6 +9,7 @@ using Microsoft.Extensions.Http;
 using Microsoft.Extensions.Time.Testing;
 using Microsoft.IdentityModel.Tokens;
 using WanderMeet.Api.Features.Invites.Shared;
+using WanderMeet.Api.Infrastructure.Push;
 
 namespace WanderMeet.Api.IntegrationTests.Infrastructure;
 
@@ -30,6 +31,13 @@ public sealed class WanderMeetApiFactory : WebApplicationFactory<Program>
     /// a SAS that expired 25+ years ago.
     /// </summary>
     public FakeTimeProvider FakeTimeProvider { get; } = new(DateTimeOffset.UtcNow);
+
+    /// <summary>
+    /// The recording FCM client registered in the test application.
+    /// Use in tests to assert push sends or inject failures via <see cref="RecordingFcmClient.ThrowOnSend"/>.
+    /// Call <see cref="RecordingFcmClient.Reset"/> before each test (done automatically in <see cref="IntegrationTestBase.SetupAsync"/>).
+    /// </summary>
+    public RecordingFcmClient FcmClient { get; } = new();
 
     /// <summary>The JWT factory whose public key is configured into JwtBearer.</summary>
     public TestJwtTokenFactory JwtFactory => _jwtFactory;
@@ -61,6 +69,11 @@ public sealed class WanderMeetApiFactory : WebApplicationFactory<Program>
             // Replace TimeProvider.System with FakeTimeProvider for deterministic assertions
             services.RemoveAll<TimeProvider>();
             services.AddSingleton<TimeProvider>(FakeTimeProvider);
+
+            // Replace IFcmClient with RecordingFcmClient for test assertions and failure injection
+            services.RemoveAll<IFcmClient>();
+            services.AddSingleton<IFcmClient>(FcmClient);
+            services.AddSingleton(FcmClient);
 
             // Replace JwtBearer options: use in-process RSA key, no Authority (offline), RS256 only
             services.PostConfigure<JwtBearerOptions>(JwtBearerDefaults.AuthenticationScheme, options =>

@@ -13,8 +13,11 @@ internal sealed class InvitesFeatureConfiguration : IFeatureConfiguration
     /// <inheritdoc />
     public IServiceCollection AddFeatureDependencies(IServiceCollection services, IConfiguration configuration)
     {
-        // SignalRInviteNotifier is Scoped because it consumes WanderMeetDbContext (Scoped).
-        services.AddScoped<IInviteNotifier, SignalRInviteNotifier>();
+        // Register concrete notifiers as Scoped (both consume WanderMeetDbContext which is Scoped).
+        // CompositeInviteNotifier takes the concrete types to avoid IEnumerable<IInviteNotifier> self-recursion.
+        services.AddScoped<SignalRInviteNotifier>();
+        services.AddScoped<FcmInviteNotifier>();
+        services.AddScoped<IInviteNotifier, CompositeInviteNotifier>();
         return services;
     }
 }

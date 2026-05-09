@@ -15,16 +15,25 @@ namespace WanderMeet.Api.IntegrationTests.Features.Push;
 public class FcmTransportRegistrationTests(IntegrationTestFixture app) : IntegrationTestBase(app)
 {
     /// <summary>
-    /// When no Firebase credentials are configured (default test environment),
+    /// When no Firebase credentials are configured,
     /// <see cref="IFcmClient"/> should resolve to <see cref="NoOpFcmClient"/>.
+    /// Uses an isolated DI container to avoid the shared test factory's RecordingFcmClient swap.
     /// </summary>
     [Fact]
     public void PushFeatureConfiguration_NoFirebaseConfig_RegistersNoOpFcmClient()
     {
-        // The default test factory does NOT set Firebase:CredentialsPath,
-        // so PushFeatureConfiguration must fall back to NoOpFcmClient.
-        using var scope = App.Services.CreateScope();
-        var fcmClient = scope.ServiceProvider.GetRequiredService<IFcmClient>();
+        var services = new ServiceCollection();
+        var configuration = new ConfigurationBuilder()
+            .AddInMemoryCollection(new Dictionary<string, string?>())
+            .Build();
+        services.AddLogging();
+        services.AddSingleton<IConfiguration>(configuration);
+
+        var pushFeature = new PushFeatureConfigurationProbe();
+        pushFeature.Register(services, configuration);
+
+        using var provider = services.BuildServiceProvider();
+        var fcmClient = provider.GetRequiredService<IFcmClient>();
 
         fcmClient.Should().BeOfType<NoOpFcmClient>(
             because: "when Firebase:CredentialsPath is absent, IFcmClient must be NoOpFcmClient");
