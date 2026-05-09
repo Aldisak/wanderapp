@@ -68,6 +68,15 @@ public static class ErrorCodes
 
         /// <summary>The review text exceeded the maximum allowed length (120 characters).</summary>
         public const string ReviewTextTooLong = "Validation.ReviewTextTooLong";
+
+        /// <summary>Report target user id was empty.</summary>
+        public const string ReportedUserIdRequired = "Validation.ReportedUserIdRequired";
+
+        /// <summary>Report reason was missing, empty, or whitespace-only.</summary>
+        public const string ReportReasonRequired = "Validation.ReportReasonRequired";
+
+        /// <summary>Report reason exceeded the maximum allowed length (300 characters).</summary>
+        public const string ReportReasonTooLong = "Validation.ReportReasonTooLong";
     }
 
     /// <summary>Auth-domain error codes.</summary>
@@ -165,6 +174,16 @@ public static class ErrorCodes
 
         /// <summary>The caller has already submitted a review for this meetup.</summary>
         public const string AlreadyReviewed = "Meetup.AlreadyReviewed";
+    }
+
+    /// <summary>Report-domain error codes.</summary>
+    public static class Report
+    {
+        /// <summary>The reported target user was not found or has been soft-deleted.</summary>
+        public const string UserNotFound = "Report.UserNotFound";
+
+        /// <summary>Caller attempted to report themselves.</summary>
+        public const string SelfReportForbidden = "Report.SelfReportForbidden";
     }
 
     /// <summary>Invite-domain error codes.</summary>
