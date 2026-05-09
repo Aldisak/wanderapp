@@ -222,6 +222,28 @@ builder.Services.SwaggerDocument(o =>
 builder.Services.Configure<ForwardedHeadersOptions>(options =>
 {
     options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
+
+    // Trust exactly ONE upstream proxy hop. Without this, an attacker can chain
+    // X-Forwarded-For values (e.g., `evil-ip, real-ip`) and the framework would
+    // walk the chain past the legitimate proxy. Most container ingress setups
+    // (Container Apps, Kubernetes Ingress, nginx-front-of-Kestrel) put exactly
+    // one proxy in front of the app — so 1 is the correct default. Increase via
+    // configuration if a multi-hop topology is in use.
+    options.ForwardLimit = builder.Configuration.GetValue<int?>("ForwardedHeaders:ForwardLimit") ?? 1;
+
+    // KnownNetworks: explicit list of CIDR ranges trusted to set X-Forwarded-For.
+    // Defaults to loopback only — production must override via config to include
+    // the actual ingress subnet (e.g., the Container Apps environment subnet).
+    var knownNetworksRaw = builder.Configuration.GetSection("ForwardedHeaders:KnownNetworks").Get<string[]>();
+    if (knownNetworksRaw is { Length: > 0 })
+    {
+        options.KnownIPNetworks.Clear();
+        foreach (var cidr in knownNetworksRaw)
+        {
+            // Format: "10.0.0.0/8" or "2001:db8::/32" — System.Net.IPNetwork.Parse handles both.
+            options.KnownIPNetworks.Add(System.Net.IPNetwork.Parse(cidr));
+        }
+    }
 });
 
 var app = builder.Build();
