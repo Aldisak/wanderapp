@@ -1,3 +1,4 @@
+using System.Security.Claims;
 using FakeItEasy;
 using FluentAssertions;
 using Hangfire;
@@ -10,15 +11,8 @@ using Xunit;
 namespace WanderMeet.Api.UnitTests.Infrastructure.Jobs;
 
 /// <summary>
-/// Unit tests for <see cref="HangfireDashboardAuthorizationFilter"/>.
-/// <para>
-/// <see cref="DashboardContext"/> is abstract with a protected ctor.
-/// <see cref="AspNetCoreDashboardContext"/> (from Hangfire.AspNetCore, in the <c>Hangfire.Dashboard</c> namespace)
-/// has a public ctor <c>(JobStorage, DashboardOptions, HttpContext)</c>. The ctor internally calls
-/// <c>httpContext.RequestServices.GetService&lt;IHangfireContextAccessor&gt;()</c>, so we must set
-/// <c>httpContext.RequestServices</c> to a minimal <see cref="ServiceProvider"/>.
-/// <see cref="JobStorage"/> is abstract — we use <c>A.Fake&lt;JobStorage&gt;()</c> (FakeItEasy).
-/// </para>
+/// Unit tests for <see cref="HangfireDashboardAuthorizationFilter"/>. Verifies the dashboard
+/// is admin-only — both anonymous and authenticated-non-admin requests are rejected.
 /// </summary>
 public class HangfireDashboardAuthorizationFilterTests
 {
@@ -26,50 +20,59 @@ public class HangfireDashboardAuthorizationFilterTests
 
     private static DashboardContext BuildContext(HttpContext httpContext)
     {
-        // AspNetCoreDashboardContext ctor requires httpContext.RequestServices to be non-null
-        // because it calls GetService<IHangfireContextAccessor>(). We provide an empty container.
+        // AspNetCoreDashboardContext ctor calls httpContext.RequestServices.GetService<IHangfireContextAccessor>()
         httpContext.RequestServices = new ServiceCollection().BuildServiceProvider();
 
         var fakeStorage = A.Fake<JobStorage>();
         return new AspNetCoreDashboardContext(fakeStorage, new DashboardOptions(), httpContext);
     }
 
-    /// <summary>Authenticated users must be granted access to the dashboard.</summary>
-    [Fact]
-    public void Authorize_AuthenticatedUser_ReturnsTrue()
+    private static HttpContext WithUser(ClaimsPrincipal principal)
     {
-        // Arrange
-        var httpContext = new DefaultHttpContext();
-        httpContext.User = new System.Security.Claims.ClaimsPrincipal(
-            new System.Security.Claims.ClaimsIdentity(
-                [new System.Security.Claims.Claim(System.Security.Claims.ClaimTypes.Name, "alice")],
-                authenticationType: "TestAuth"));
-
-        var dashboardContext = BuildContext(httpContext);
-        var sut = CreateSut();
-
-        // Act
-        var result = sut.Authorize(dashboardContext);
-
-        // Assert
-        result.Should().BeTrue(because: "an authenticated user must be allowed through");
+        var ctx = new DefaultHttpContext { User = principal };
+        return ctx;
     }
 
-    /// <summary>Anonymous / unauthenticated requests must be blocked from the dashboard.</summary>
+    /// <summary>Anonymous / unauthenticated requests must be blocked.</summary>
     [Fact]
     public void Authorize_AnonymousUser_ReturnsFalse()
     {
-        // Arrange
-        var httpContext = new DefaultHttpContext();
-        // Default ClaimsPrincipal has an empty/unauthenticated identity
-
+        var httpContext = WithUser(new ClaimsPrincipal());
         var dashboardContext = BuildContext(httpContext);
-        var sut = CreateSut();
 
-        // Act
-        var result = sut.Authorize(dashboardContext);
+        var result = CreateSut().Authorize(dashboardContext);
 
-        // Assert
-        result.Should().BeFalse(because: "an unauthenticated request must be blocked from the dashboard");
+        result.Should().BeFalse(because: "anonymous requests must be rejected");
+    }
+
+    /// <summary>Authenticated users WITHOUT the Admin role must be blocked.</summary>
+    [Fact]
+    public void Authorize_AuthenticatedUserWithoutAdminRole_ReturnsFalse()
+    {
+        var principal = new ClaimsPrincipal(new ClaimsIdentity(
+            [new Claim(ClaimTypes.Name, "alice")],
+            authenticationType: "TestAuth"));
+        var dashboardContext = BuildContext(WithUser(principal));
+
+        var result = CreateSut().Authorize(dashboardContext);
+
+        result.Should().BeFalse(because: "regular authenticated users must NOT see Hangfire telemetry");
+    }
+
+    /// <summary>Authenticated users WITH the Admin role must be granted access.</summary>
+    [Fact]
+    public void Authorize_AuthenticatedUserWithAdminRole_ReturnsTrue()
+    {
+        var principal = new ClaimsPrincipal(new ClaimsIdentity(
+            [
+                new Claim(ClaimTypes.Name, "admin"),
+                new Claim(ClaimTypes.Role, HangfireDashboardAuthorizationFilter.AdminRole),
+            ],
+            authenticationType: "TestAuth"));
+        var dashboardContext = BuildContext(WithUser(principal));
+
+        var result = CreateSut().Authorize(dashboardContext);
+
+        result.Should().BeTrue(because: "users with the Admin role must be allowed in");
     }
 }
