@@ -35,5 +35,7 @@ internal sealed class UserConfiguration : IEntityTypeConfiguration<User>
         builder.HasIndex(x => x.DeletedAt);
 
         builder.Property(x => x.YearsNomading).HasPrecision(3, 1);
+
+        builder.Property(x => x.FcmToken).HasMaxLength(ValidationConstants.FcmTokenMaxLength);
     }
 }

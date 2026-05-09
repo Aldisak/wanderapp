@@ -77,6 +77,12 @@ public static class ErrorCodes
 
         /// <summary>Report reason exceeded the maximum allowed length (300 characters).</summary>
         public const string ReportReasonTooLong = "Validation.ReportReasonTooLong";
+
+        /// <summary>FCM token was missing, empty, or whitespace-only.</summary>
+        public const string FcmTokenRequired = "Validation.FcmTokenRequired";
+
+        /// <summary>FCM token exceeded the maximum allowed length (512 characters).</summary>
+        public const string FcmTokenTooLong = "Validation.FcmTokenTooLong";
     }
 
     /// <summary>Auth-domain error codes.</summary>

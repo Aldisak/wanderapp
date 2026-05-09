@@ -35,4 +35,7 @@ public static class ValidationConstants
 
     /// <summary>SRID for all geography columns (WGS 84).</summary>
     public const int GeographySrid = 4326;
+
+    /// <summary>Max length of <c>User.FcmToken</c> (Firebase Cloud Messaging device token).</summary>
+    public const int FcmTokenMaxLength = 512;
 }

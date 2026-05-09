@@ -55,4 +55,7 @@ public class User : AuditableEntity
 
     /// <summary>Many-to-many link to selected hangout types.</summary>
     public List<UserHangoutTag> HangoutTags { get; set; } = [];
+
+    /// <summary>Firebase Cloud Messaging device token; updated when the app registers or refreshes its FCM registration.</summary>
+    public string? FcmToken { get; set; }
 }
