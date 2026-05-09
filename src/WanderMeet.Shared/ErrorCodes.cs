@@ -65,6 +65,9 @@ public static class ErrorCodes
 
         /// <summary>Invite id route parameter was empty.</summary>
         public const string InviteIdRequired = "Validation.InviteIdRequired";
+
+        /// <summary>The review text exceeded the maximum allowed length (120 characters).</summary>
+        public const string ReviewTextTooLong = "Validation.ReviewTextTooLong";
     }
 
     /// <summary>Auth-domain error codes.</summary>
@@ -152,6 +155,16 @@ public static class ErrorCodes
     {
         /// <summary>The requested place was not found or is soft-deleted.</summary>
         public const string NotFound = "Place.NotFound";
+    }
+
+    /// <summary>Meetup-domain error codes.</summary>
+    public static class Meetup
+    {
+        /// <summary>The requested meetup was not found, or the caller is not a participant.</summary>
+        public const string NotFound = "Meetup.NotFound";
+
+        /// <summary>The caller has already submitted a review for this meetup.</summary>
+        public const string AlreadyReviewed = "Meetup.AlreadyReviewed";
     }
 
     /// <summary>Invite-domain error codes.</summary>
