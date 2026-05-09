@@ -16,8 +16,9 @@ internal sealed class JobsFeatureConfiguration : IFeatureConfiguration
     public IServiceCollection AddFeatureDependencies(IServiceCollection services, IConfiguration configuration)
     {
         services.AddHostedService<JobsStartupHostedService>();
-        // Scoped job-class registrations (InviteExpiryJob, ReviewPromptJob, SinkInactiveProfilesJob)
-        // are added in WI-2.
+        services.AddScoped<InviteExpiryJob>();
+        services.AddScoped<ReviewPromptJob>();
+        services.AddScoped<SinkInactiveProfilesJob>();
         return services;
     }
 }

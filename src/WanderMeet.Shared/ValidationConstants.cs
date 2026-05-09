@@ -38,4 +38,7 @@ public static class ValidationConstants
 
     /// <summary>Max length of <c>User.FcmToken</c> (Firebase Cloud Messaging device token).</summary>
     public const int FcmTokenMaxLength = 512;
+
+    /// <summary>Delay after a meetup before the review prompt push is sent (3 hours).</summary>
+    public static readonly TimeSpan ReviewPromptDelay = TimeSpan.FromHours(3);
 }

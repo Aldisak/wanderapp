@@ -16,11 +16,23 @@ internal sealed class JobsStartupHostedService(
     /// </summary>
     public Task StartAsync(CancellationToken cancellationToken)
     {
-        logger.LogInformation("JobsStartupHostedService: registering recurring jobs (WI-2 will add job entries).");
-        // AddOrUpdate calls for InviteExpiryJob, ReviewPromptJob, and SinkInactiveProfilesJob
-        // are wired in WI-2. The recurringJobs manager is injected here to validate DI wiring
-        // in integration smoke tests (WI-1).
-        _ = recurringJobs;
+        logger.LogInformation("JobsStartupHostedService: registering recurring jobs.");
+
+        recurringJobs.AddOrUpdate<InviteExpiryJob>(
+            "invite-expiry",
+            j => j.ExecuteAsync(CancellationToken.None),
+            "*/5 * * * *");
+
+        recurringJobs.AddOrUpdate<ReviewPromptJob>(
+            "review-prompt",
+            j => j.ExecuteAsync(CancellationToken.None),
+            "*/5 * * * *");
+
+        recurringJobs.AddOrUpdate<SinkInactiveProfilesJob>(
+            "sink-inactive-profiles",
+            j => j.ExecuteAsync(CancellationToken.None),
+            "0 * * * *");
+
         return Task.CompletedTask;
     }
 
