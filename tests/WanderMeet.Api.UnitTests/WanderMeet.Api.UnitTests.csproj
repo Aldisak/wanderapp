@@ -15,6 +15,8 @@
   <!-- Force EF Core Relational to match the version used by WanderMeet.Api (avoids MSB3277 / ReflectionTypeLoadException). -->
   <ItemGroup>
     <PackageReference Include="FluentValidation" Version="12.1.1" />
+    <PackageReference Include="Hangfire.AspNetCore" Version="1.8.18" />
+    <PackageReference Include="Hangfire.PostgreSql" Version="1.20.10" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="10.0.7" />
     <PackageReference Include="FakeItEasy" Version="9.0.1" />
     <PackageReference Include="FastEndpoints.Testing" Version="8.1.0" />

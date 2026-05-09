@@ -2,6 +2,9 @@ using System.Security.Claims;
 using System.Threading.RateLimiting;
 using FastEndpoints;
 using FastEndpoints.Swagger;
+using Hangfire;
+using Hangfire.Dashboard;
+using Hangfire.PostgreSql;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.RateLimiting;
@@ -13,6 +16,7 @@ using WanderMeet.Api.Authorization;
 using WanderMeet.Api.Common;
 using WanderMeet.Api.Common.Middleware;
 using WanderMeet.Api.Infrastructure.EntityFramework;
+using WanderMeet.Api.Infrastructure.Jobs;
 using WanderMeet.Api.Infrastructure.SignalR;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -39,6 +43,21 @@ builder.Services.AddDbContext<WanderMeetDbContext>(options => options
         builder.Configuration.GetConnectionString("DefaultConnection"),
         npgsql => npgsql.UseNetTopologySuite())
     .UseSnakeCaseNamingConvention());
+
+var hangfireConnectionString = builder.Configuration.GetConnectionString("DefaultConnection")!;
+builder.Services.AddHangfire(c => c
+    .UsePostgreSqlStorage(o => o.UseNpgsqlConnection(hangfireConnectionString)));
+
+// Skip the Hangfire server (worker) when running inside the integration-test host to avoid
+// worker contention and to keep tests fast and deterministic.
+if (!builder.Environment.IsEnvironment("IntegrationTest"))
+{
+    builder.Services.AddHangfireServer(opts =>
+    {
+        opts.WorkerCount = 1;
+        opts.Queues = ["default"];
+    });
+}
 
 builder.Services.AddCors(options =>
 {
@@ -203,6 +222,11 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapHub<InviteHub>("/hubs/invites");
+
+app.MapHangfireDashboard("/hangfire", new DashboardOptions
+{
+    Authorization = [new HangfireDashboardAuthorizationFilter()]
+});
 
 app.UseFastEndpoints(c =>
 {

@@ -53,6 +53,11 @@ public sealed class WanderMeetApiFactory : WebApplicationFactory<Program>
     /// <inheritdoc />
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
+        // Set the environment to "IntegrationTest" so Program.cs skips AddHangfireServer
+        // (the Hangfire worker would poll the DB and introduce contention during tests).
+        // AddHangfire (storage + IRecurringJobManager) is still registered so DI resolves.
+        builder.UseEnvironment("IntegrationTest");
+
         builder.UseSetting("ConnectionStrings:DefaultConnection", _connectionString);
         builder.UseSetting("BlobStorage:ConnectionString", _blobConnectionString);
         builder.UseSetting("BlobStorage:ContainerName", "user-photos-tests");
