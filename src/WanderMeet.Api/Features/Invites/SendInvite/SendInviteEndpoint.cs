@@ -170,7 +170,19 @@ internal sealed class SendInviteEndpoint(
 
         dbContext.Invites.Add(invite);
         caller.LastActiveAt = now;
-        await dbContext.SaveChangesAsync(ct);
+        try
+        {
+            await dbContext.SaveChangesAsync(ct);
+        }
+        catch (DbUpdateException ex) when (IsUniqueViolation(ex))
+        {
+            // Partial unique index ix_invites_sender_receiver_pending_unique fired —
+            // a concurrent request created a Pending invite for the same (sender, receiver)
+            // pair after our AnyAsync check (TOCTOU race; security audit finding F5).
+            AddError(ErrorCodes.Invite.AlreadyPending, "A pending invite already exists between you and this user.");
+            await Send.ErrorsAsync(409, ct);
+            return;
+        }
 
         // Notify — failures MUST NOT bubble
         try
@@ -204,4 +216,12 @@ internal sealed class SendInviteEndpoint(
 
         await Send.ResponseAsync(dto, StatusCodes.Status201Created, ct);
     }
+
+    /// <summary>
+    /// Returns true if the supplied EF Core <see cref="DbUpdateException"/> wraps a PostgreSQL
+    /// unique-violation error (SQLSTATE 23505). Used to convert a partial-unique-index race
+    /// into a clean 409 response.
+    /// </summary>
+    private static bool IsUniqueViolation(DbUpdateException ex)
+        => ex.InnerException is Npgsql.PostgresException pg && pg.SqlState == "23505";
 }

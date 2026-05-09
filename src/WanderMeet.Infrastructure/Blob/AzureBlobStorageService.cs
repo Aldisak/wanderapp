@@ -91,11 +91,10 @@ internal sealed class AzureBlobStorageService : IBlobStorageService
             Resource = "b",
             StartsOn = now.AddMinutes(-1),
             ExpiresOn = expiresOn,
-            // HTTPS-only (security audit finding F4): a SAS that permits HTTP allows
-            // an on-path attacker to replay the signed URL within the TTL window over
-            // plaintext. There's no operational reason to allow HTTP for write SAS;
-            // both Azurite and real Azure accept HTTPS-only.
-            Protocol = SasProtocol.Https,
+            // SAS protocol pinned via configuration. Production defaults to HTTPS-only
+            // (security audit finding F4) — only the test fixture overrides to HttpsAndHttp
+            // to exercise SAS upload against Azurite's HTTP-only endpoint.
+            Protocol = _options.SasProtocol,
         };
         sasBuilder.SetPermissions(BlobSasPermissions.Create | BlobSasPermissions.Write);
 

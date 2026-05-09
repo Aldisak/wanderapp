@@ -61,6 +61,9 @@ public sealed class WanderMeetApiFactory : WebApplicationFactory<Program>
         builder.UseSetting("ConnectionStrings:DefaultConnection", _connectionString);
         builder.UseSetting("BlobStorage:ConnectionString", _blobConnectionString);
         builder.UseSetting("BlobStorage:ContainerName", "user-photos-tests");
+        // Azurite only listens on HTTP. Production pins SAS to HTTPS-only (security audit
+        // finding F4); the test fixture overrides to exercise SAS uploads via the HTTP emulator.
+        builder.UseSetting("BlobStorage:SasProtocol", "HttpsAndHttp");
 
         // Provide minimal AzureAdB2C config so the endpoint does not return 503 in integration tests.
         // Individual tests that need the real B2C call swap the handler via CreateClientWithB2CHandler.

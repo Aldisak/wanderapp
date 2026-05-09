@@ -38,5 +38,14 @@ internal sealed class InviteConfiguration : IEntityTypeConfiguration<Invite>
         builder.HasIndex(x => new { x.ReceiverId, x.Status });
         builder.HasIndex(x => new { x.SenderId, x.Status });
         builder.HasIndex(x => new { x.Status, x.ExpiresAt });
+
+        // Partial unique index — at most one Pending invite per (sender, receiver) pair.
+        // Eliminates the TOCTOU race in SendInviteEndpoint where two concurrent POSTs both
+        // pass the AnyAsync pre-check before either calls SaveChangesAsync (security audit
+        // finding F5). The endpoint catches the resulting DbUpdateException → 23505 → 409.
+        builder.HasIndex(x => new { x.SenderId, x.ReceiverId })
+            .IsUnique()
+            .HasFilter("\"status\" = 'Pending'")
+            .HasDatabaseName("ix_invites_sender_receiver_pending_unique");
     }
 }
