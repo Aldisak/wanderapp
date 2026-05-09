@@ -1,5 +1,6 @@
 using FluentAssertions;
 using Microsoft.Extensions.DependencyInjection;
+using WanderMeet.Api.Features.Invites.Realtime;
 using WanderMeet.Api.Features.Invites.Shared;
 using WanderMeet.Api.IntegrationTests.Infrastructure;
 using Xunit;
@@ -10,14 +11,14 @@ namespace WanderMeet.Api.IntegrationTests.Features.Invites;
 [Collection(TestConstants.Collections.PipelineTest)]
 public class InvitesFeatureConfigurationTests(IntegrationTestFixture app) : IntegrationTestBase(app)
 {
-    /// <summary>IInviteNotifier should be registered as NoOpInviteNotifier singleton.</summary>
+    /// <summary>IInviteNotifier should be registered as SignalRInviteNotifier (scoped) after WI-2 swap.</summary>
     [Fact]
-    public void Discover_FeatureConfiguration_RegistersIInviteNotifierAsNoOp()
+    public void Discover_FeatureConfiguration_RegistersIInviteNotifierAsSignalRNotifier()
     {
         using var scope = App.Services.CreateScope();
         var notifier = scope.ServiceProvider.GetRequiredService<IInviteNotifier>();
 
         notifier.Should().NotBeNull();
-        notifier.Should().BeOfType<NoOpInviteNotifier>();
+        notifier.Should().BeOfType<SignalRInviteNotifier>();
     }
 }

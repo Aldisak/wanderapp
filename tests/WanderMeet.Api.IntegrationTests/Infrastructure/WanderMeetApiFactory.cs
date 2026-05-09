@@ -1,6 +1,8 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http.Connections;
 using Microsoft.AspNetCore.Mvc.Testing;
+using Microsoft.AspNetCore.SignalR.Client;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Http;
@@ -114,5 +116,25 @@ public sealed class WanderMeetApiFactory : WebApplicationFactory<Program>
             }));
 
         return derived.CreateClient();
+    }
+
+    /// <summary>
+    /// Creates an authenticated <see cref="HubConnection"/> for the given <paramref name="azureAdB2CId"/>
+    /// pointed at the specified <paramref name="hubPath"/> against the test server.
+    /// Uses <see cref="HttpTransportType.LongPolling"/> because <see cref="Microsoft.AspNetCore.TestHost.TestServer"/>
+    /// does not support raw WebSockets.
+    /// </summary>
+    /// <param name="azureAdB2CId">The Azure AD B2C subject claim to use for the JWT bearer token.</param>
+    /// <param name="hubPath">Hub endpoint path; defaults to <c>/hubs/invites</c>.</param>
+    public HubConnection CreateAuthenticatedSignalRConnection(string azureAdB2CId, string hubPath = "/hubs/invites")
+    {
+        return new HubConnectionBuilder()
+            .WithUrl(new Uri(Server.BaseAddress, hubPath), opts =>
+            {
+                opts.HttpMessageHandlerFactory = _ => Server.CreateHandler();
+                opts.AccessTokenProvider = () => Task.FromResult<string?>(_jwtFactory.CreateToken(azureAdB2CId));
+                opts.Transports = HttpTransportType.LongPolling;
+            })
+            .Build();
     }
 }

@@ -1,4 +1,5 @@
 using WanderMeet.Api.Common;
+using WanderMeet.Api.Features.Invites.Realtime;
 using WanderMeet.Api.Features.Invites.Shared;
 
 namespace WanderMeet.Api.Features.Invites;
@@ -12,7 +13,8 @@ internal sealed class InvitesFeatureConfiguration : IFeatureConfiguration
     /// <inheritdoc />
     public IServiceCollection AddFeatureDependencies(IServiceCollection services, IConfiguration configuration)
     {
-        services.AddSingleton<IInviteNotifier, NoOpInviteNotifier>();
+        // SignalRInviteNotifier is Scoped because it consumes WanderMeetDbContext (Scoped).
+        services.AddScoped<IInviteNotifier, SignalRInviteNotifier>();
         return services;
     }
 }

@@ -5,6 +5,7 @@ using FastEndpoints.Swagger;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.RateLimiting;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Serilog;
@@ -12,6 +13,7 @@ using WanderMeet.Api.Authorization;
 using WanderMeet.Api.Common;
 using WanderMeet.Api.Common.Middleware;
 using WanderMeet.Api.Infrastructure.EntityFramework;
+using WanderMeet.Api.Infrastructure.SignalR;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -135,6 +137,24 @@ builder.Services
             ValidAlgorithms = [SecurityAlgorithms.RsaSha256],
             ClockSkew = TimeSpan.FromMinutes(2)
         };
+
+        // Accept access_token from query string for SignalR hub paths only.
+        // Browser-based WebSocket clients cannot set Authorization headers.
+        options.Events = new JwtBearerEvents
+        {
+            OnMessageReceived = ctx =>
+            {
+                if (ctx.HttpContext.Request.Path.StartsWithSegments("/hubs"))
+                {
+                    var accessToken = ctx.HttpContext.Request.Query["access_token"];
+                    if (!string.IsNullOrEmpty(accessToken))
+                    {
+                        ctx.Token = accessToken;
+                    }
+                }
+                return Task.CompletedTask;
+            }
+        };
     });
 
 builder.Services.AddAuthorizationBuilder()
@@ -143,6 +163,9 @@ builder.Services.AddAuthorizationBuilder()
     .AddPolicy(AuthorizationPolicies.AdminOnly, policy => policy
         .RequireAuthenticatedUser()
         .RequireRole("Admin"));
+
+builder.Services.AddSignalR();
+builder.Services.AddSingleton<IUserIdProvider, JwtSubUserIdProvider>();
 
 builder.Services.AddVerticalSliceFeatures<Program>(builder.Configuration);
 
@@ -178,6 +201,8 @@ app.UseCors();
 app.UseRateLimiter();
 app.UseAuthentication();
 app.UseAuthorization();
+
+app.MapHub<InviteHub>("/hubs/invites");
 
 app.UseFastEndpoints(c =>
 {

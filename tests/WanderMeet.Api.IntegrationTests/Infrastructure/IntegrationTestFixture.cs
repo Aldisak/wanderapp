@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.SignalR.Client;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Time.Testing;
@@ -30,6 +31,9 @@ public sealed class IntegrationTestFixture : IAsyncLifetime
 
     /// <summary>The service provider from the running test application.</summary>
     public IServiceProvider Services => _factory.Services;
+
+    /// <summary>The underlying test server, for direct SignalR handler access.</summary>
+    public Microsoft.AspNetCore.TestHost.TestServer Server => _factory.Server;
 
     /// <summary>The <see cref="FakeTimeProvider"/> registered in the test application; used for deterministic time assertions.</summary>
     public FakeTimeProvider FakeTimeProvider => _factory.FakeTimeProvider;
@@ -109,6 +113,18 @@ public sealed class IntegrationTestFixture : IAsyncLifetime
         client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
         return client;
     }
+
+    /// <summary>
+    /// Creates an authenticated <see cref="HubConnection"/> against the test server's
+    /// <see cref="InviteHub"/> using LongPolling transport.
+    /// </summary>
+    /// <param name="azureAdB2CId">The Azure AD B2C subject claim for the JWT bearer token.</param>
+    /// <param name="hubPath">Hub endpoint path; defaults to <c>/hubs/invites</c>.</param>
+    public HubConnection CreateAuthenticatedSignalRConnection(string azureAdB2CId, string hubPath = "/hubs/invites")
+        => _factory.CreateAuthenticatedSignalRConnection(azureAdB2CId, hubPath);
+
+    /// <summary>The JWT factory used by the fixture; exposed so tests can create tokens for query-string auth.</summary>
+    public TestJwtTokenFactory JwtFactory => _jwtFactory;
 
     /// <summary>Stops the PostgreSQL and Azurite containers.</summary>
     public async ValueTask DisposeAsync()

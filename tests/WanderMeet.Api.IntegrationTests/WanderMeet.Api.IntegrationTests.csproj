@@ -14,6 +14,7 @@
 
   <!-- Force EF Core Relational to match the version used by WanderMeet.Api (avoids ReflectionTypeLoadException). -->
   <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.SignalR.Client" Version="10.0.7" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="10.0.7" />
     <PackageReference Include="FakeItEasy" Version="9.0.1" />
     <PackageReference Include="FastEndpoints.Testing" Version="8.1.0" />
