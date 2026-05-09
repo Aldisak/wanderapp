@@ -22,4 +22,18 @@ internal sealed class NoOpInviteNotifier(ILogger<NoOpInviteNotifier> logger) : I
         logger.LogDebug("Invite {InviteId} accepted — meetup {MeetupId} created (no-op notifier)", invite.Id, meetupId);
         return Task.CompletedTask;
     }
+
+    /// <inheritdoc />
+    public Task InviteDeclinedAsync(Invite invite, CancellationToken ct)
+    {
+        logger.LogDebug("Invite {InviteId} declined (no-op notifier)", invite.Id);
+        return Task.CompletedTask;
+    }
+
+    /// <inheritdoc />
+    public Task InviteExpiredAsync(Invite invite, CancellationToken ct)
+    {
+        logger.LogDebug("Invite {InviteId} expired (no-op notifier)", invite.Id);
+        return Task.CompletedTask;
+    }
 }

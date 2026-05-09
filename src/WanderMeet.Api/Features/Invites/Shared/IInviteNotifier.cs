@@ -26,4 +26,14 @@ public interface IInviteNotifier
     /// <param name="meetupId">Id of the newly created meetup row.</param>
     /// <param name="ct">Cancellation token.</param>
     Task InviteAcceptedAsync(Invite invite, Guid meetupId, CancellationToken ct);
+
+    /// <summary>Called after an invite has been declined by the receiver. Fires a sender-side notification only; the receiver sees no UI toast (silent on the UI).</summary>
+    /// <param name="invite">The declined invite (Status = Declined).</param>
+    /// <param name="ct">Cancellation token.</param>
+    Task InviteDeclinedAsync(Invite invite, CancellationToken ct);
+
+    /// <summary>Called when a pending invite has expired without a response. Notifies both sender and receiver that the window has closed.</summary>
+    /// <param name="invite">The expired invite (Status = Pending, ExpiresAt in the past).</param>
+    /// <param name="ct">Cancellation token.</param>
+    Task InviteExpiredAsync(Invite invite, CancellationToken ct);
 }

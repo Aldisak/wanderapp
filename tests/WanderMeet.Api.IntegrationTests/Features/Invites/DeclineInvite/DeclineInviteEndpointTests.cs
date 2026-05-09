@@ -331,12 +331,12 @@ public class DeclineInviteEndpointTests(IntegrationTestFixture app) : Integratio
         }
     }
 
-    /// <summary>Decline must NOT call IInviteNotifier — silent decline is intentional per spec.</summary>
+    /// <summary>Happy path fires InviteDeclinedAsync on the notifier with the persisted invite Id; Sent and Accepted remain empty.</summary>
     [Fact]
-    public async Task HandleAsync_HappyPath_DoesNotCallInviteNotifier()
+    public async Task HandleAsync_HappyPath_FiresInviteDeclinedAsyncOnInviteNotifier()
     {
-        const string SENDER_SUB = "oid|decline-silent-sender";
-        const string RECEIVER_SUB = "oid|decline-silent-recv";
+        const string SENDER_SUB = "oid|decline-fires-sender";
+        const string RECEIVER_SUB = "oid|decline-fires-recv";
         var now = App.FakeTimeProvider.GetUtcNow();
 
         Guid inviteId;
@@ -347,7 +347,7 @@ public class DeclineInviteEndpointTests(IntegrationTestFixture app) : Integratio
             var sender = CreateUser(SENDER_SUB, null, now);
             var receiver = CreateUser(RECEIVER_SUB, null, now);
             db.Users.AddRange(sender, receiver);
-            var (_, placeId) = SeedCityAndPlace(db, now, "decline-silent");
+            var (_, placeId) = SeedCityAndPlace(db, now, "decline-fires");
             var invite = MakeInvite(sender.Id, receiver.Id, placeId, now);
             inviteId = invite.Id;
             db.Invites.Add(invite);
@@ -356,7 +356,7 @@ public class DeclineInviteEndpointTests(IntegrationTestFixture app) : Integratio
 
         var spy = new RecordingInviteNotifier();
         var client = App.CreateAuthenticatedClientWithInviteNotifier(RECEIVER_SUB, spy);
-        client.DefaultRequestHeaders.Add("X-Forwarded-For", "10.50.1.10");
+        client.DefaultRequestHeaders.Add("X-Forwarded-For", "10.50.1.11");
 
         var response = await client.PatchAsJsonAsync(
             $"api/v1/invites/{inviteId}/decline",
@@ -364,8 +364,52 @@ public class DeclineInviteEndpointTests(IntegrationTestFixture app) : Integratio
             TestContext.Current.CancellationToken);
 
         response.StatusCode.Should().Be(HttpStatusCode.OK);
+        spy.Declined.Should().HaveCount(1);
+        spy.Declined[0].Id.Should().Be(inviteId);
         spy.Sent.Should().BeEmpty();
         spy.Accepted.Should().BeEmpty();
+    }
+
+    /// <summary>Notifier throws on decline → endpoint still returns 200 and invite is persisted as Declined.</summary>
+    [Fact]
+    public async Task HandleAsync_NotifierThrows_StillReturns200AndPersists()
+    {
+        const string SENDER_SUB = "oid|decline-throws-sender";
+        const string RECEIVER_SUB = "oid|decline-throws-recv";
+        var now = App.FakeTimeProvider.GetUtcNow();
+
+        Guid inviteId;
+        using (var scope = App.Services.CreateScope())
+        {
+            var db = scope.ServiceProvider.GetRequiredService<WanderMeetDbContext>();
+            await EnsureCoffeeTagAsync(db, now);
+            var sender = CreateUser(SENDER_SUB, null, now);
+            var receiver = CreateUser(RECEIVER_SUB, null, now);
+            db.Users.AddRange(sender, receiver);
+            var (_, placeId) = SeedCityAndPlace(db, now, "decline-throws");
+            var invite = MakeInvite(sender.Id, receiver.Id, placeId, now);
+            inviteId = invite.Id;
+            db.Invites.Add(invite);
+            await db.SaveChangesAsync(TestContext.Current.CancellationToken);
+        }
+
+        var spy = new RecordingInviteNotifier { ThrowOnDeclined = new InvalidOperationException("simulated downstream failure") };
+        var client = App.CreateAuthenticatedClientWithInviteNotifier(RECEIVER_SUB, spy);
+        client.DefaultRequestHeaders.Add("X-Forwarded-For", "10.50.1.12");
+
+        var response = await client.PatchAsJsonAsync(
+            $"api/v1/invites/{inviteId}/decline",
+            new { },
+            TestContext.Current.CancellationToken);
+
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+
+        using var verify = App.Services.CreateScope();
+        var verifyDb = verify.ServiceProvider.GetRequiredService<WanderMeetDbContext>();
+        var inviteAfter = await verifyDb.Invites.AsNoTracking()
+            .FirstAsync(i => i.Id == inviteId, TestContext.Current.CancellationToken);
+        inviteAfter.Status.Should().Be(InviteStatus.Declined);
+        inviteAfter.RespondedAt.Should().Be(now);
     }
 
     /// <summary>Subset of InviteDto used to deserialise the decline-happy-path response body.</summary>

@@ -11,8 +11,12 @@ using WanderMeet.Shared.Enums;
 
 namespace WanderMeet.Api.Features.Invites.DeclineInvite;
 
-/// <summary>Declines a pending invite addressed to the authenticated user. Silent — no notification sent.</summary>
-internal sealed class DeclineInviteEndpoint(WanderMeetDbContext dbContext, TimeProvider timeProvider)
+/// <summary>Declines a pending invite addressed to the authenticated user. A notifier event fires for the sender side but the receiver still sees no UI toast (silent on the UI).</summary>
+internal sealed class DeclineInviteEndpoint(
+    WanderMeetDbContext dbContext,
+    IInviteNotifier notifier,
+    TimeProvider timeProvider,
+    ILogger<DeclineInviteEndpoint> logger)
     : Endpoint<DeclineInviteRequest, InviteDto>
 {
     private readonly InvitesFeatureConfiguration _featureConfiguration = new();
@@ -31,7 +35,7 @@ internal sealed class DeclineInviteEndpoint(WanderMeetDbContext dbContext, TimeP
         Summary(s =>
         {
             s.Summary = "Decline an invite";
-            s.Description = "Declines the specified pending invite if the caller is the receiver. Silent — no notification is sent.";
+            s.Description = "Declines the specified pending invite if the caller is the receiver. A notifier event fires for the sender side but the receiver still sees no UI toast (silent on the UI).";
             s.Responses[StatusCodes.Status200OK] = "Invite declined; returns the updated InviteDto";
             s.Responses[StatusCodes.Status401Unauthorized] = "Bearer token missing or invalid";
             s.Responses[StatusCodes.Status404NotFound] = "Invite not found or caller is not the receiver";
@@ -90,7 +94,15 @@ internal sealed class DeclineInviteEndpoint(WanderMeetDbContext dbContext, TimeP
 
         await dbContext.SaveChangesAsync(ct);
 
-        // No notifier call — silent decline is intentional per spec.
+        // Notify — failures MUST NOT bubble
+        try
+        {
+            await notifier.InviteDeclinedAsync(invite, ct);
+        }
+        catch (Exception ex)
+        {
+            logger.LogWarning(ex, "IInviteNotifier.InviteDeclinedAsync failed for invite {InviteId}; continuing.", invite.Id);
+        }
 
         // Project fresh DTO via AsNoTracking query (mirrors AcceptInviteEndpoint).
         var dto = await dbContext.Invites
