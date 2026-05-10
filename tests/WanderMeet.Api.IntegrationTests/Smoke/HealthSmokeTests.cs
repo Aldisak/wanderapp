@@ -1,10 +1,13 @@
+using System.Net.Http.Json;
 using FluentAssertions;
+using WanderMeet.Api.Features.Health.GetHealth;
 using WanderMeet.Api.IntegrationTests.Infrastructure;
 using Xunit;
 
 namespace WanderMeet.Api.IntegrationTests.Smoke;
 
-/// <summary>Smoke tests that prove the integration-test fixture boots and connects to the DB.</summary>
+/// <summary>Smoke tests that prove the integration-test fixture boots and the /health endpoint
+/// reports per-dependency status.</summary>
 [Collection(TestConstants.Collections.PipelineTest)]
 public class HealthSmokeTests : IntegrationTestBase
 {
@@ -16,15 +19,32 @@ public class HealthSmokeTests : IntegrationTestBase
         _app = app;
     }
 
-    /// <summary>Fixture boots, DB is reachable, ResetDatabaseAsync runs cleanly.</summary>
+    /// <summary>Fixture boots, DB is reachable; /health returns 200 with healthy database + per-dep payload.</summary>
     [Fact]
-    public async Task GetHealth_WithFixture_Returns200()
+    public async Task GetHealth_WithFixture_ReturnsHealthyAndDatabaseDependencyHealthy()
     {
         var client = _app.CreateAnonymousClient();
 
         var response = await client.GetAsync("api/v1/health", TestContext.Current.CancellationToken);
 
         response.StatusCode.Should().Be(System.Net.HttpStatusCode.OK);
+
+        var body = await response.Content.ReadFromJsonAsync<GetHealthResponse>(
+            TestContext.Current.CancellationToken);
+
+        body.Should().NotBeNull();
+        body!.Status.Should().BeOneOf(["healthy", "degraded"]);
+
+        body.Dependencies.Should().NotBeEmpty();
+
+        var database = body.Dependencies.SingleOrDefault(d => d.Name == "database");
+        database.Should().NotBeNull(because: "database is the critical dependency and must always appear");
+        database!.Status.Should().Be("healthy", because: "the test container Postgres must be reachable");
+
+        body.Dependencies.Should().Contain(d => d.Name == "blob-storage",
+            because: "blob storage check is registered");
+        body.Dependencies.Should().Contain(d => d.Name == "fcm",
+            because: "FCM check is registered");
     }
 
     /// <summary>Issued token reaches an authenticated route; an unsigned/forged token returns 401.</summary>
@@ -42,13 +62,5 @@ public class HealthSmokeTests : IntegrationTestBase
         token.Should().NotBeNullOrEmpty();
         var parts = token.Split('.');
         parts.Should().HaveCount(3, "JWT must have header.payload.signature");
-
-        // A token signed with a *different* key should be rejected on authenticated endpoints
-        var forgedToken = tokenFactory.CreateToken("forged-sub");
-        var anonClient = _app.CreateAnonymousClient();
-        anonClient.DefaultRequestHeaders.Authorization =
-            new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", forgedToken);
-        // Health is anonymous — no 401 there, but we confirmed above the factory produces valid JWTs;
-        // the underlying assertion is that CreateToken produces a valid structure trusting the pipeline test.
     }
 }
