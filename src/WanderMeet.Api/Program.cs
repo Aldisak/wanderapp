@@ -212,6 +212,11 @@ builder.Services.AddVerticalSliceFeatures<Program>(builder.Configuration);
 builder.Services.AddFastEndpoints();
 builder.Services.SwaggerDocument(o =>
 {
+    // 0 disables FastEndpoints' path-segment auto-tagging. Every endpoint already calls
+    // WithTags(_featureConfiguration.Info.Name); leaving auto-tag on produces a duplicate
+    // (lowercase "discover" auto-tag + explicit "Discovery" tag).
+    o.AutoTagPathSegmentIndex = 0;
+
     o.DocumentSettings = s =>
     {
         s.Title = "WanderMeet API";
