@@ -15,7 +15,7 @@ internal class InviteHub(ILogger<InviteHub> logger) : Hub
     /// <inheritdoc />
     public override Task OnConnectedAsync()
     {
-        logger.LogDebug("SignalR InviteHub: client connected. ConnectionId={ConnectionId}, UserId={UserId}",
+        logger.LogDebug("Hub client connected {ConnectionId} {UserId}",
             Context.ConnectionId, Context.UserIdentifier);
         return base.OnConnectedAsync();
     }
@@ -23,7 +23,7 @@ internal class InviteHub(ILogger<InviteHub> logger) : Hub
     /// <inheritdoc />
     public override Task OnDisconnectedAsync(Exception? exception)
     {
-        logger.LogDebug("SignalR InviteHub: client disconnected. ConnectionId={ConnectionId}, UserId={UserId}",
+        logger.LogDebug("Hub client disconnected {ConnectionId} {UserId}",
             Context.ConnectionId, Context.UserIdentifier);
         return base.OnDisconnectedAsync(exception);
     }

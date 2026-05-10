@@ -50,19 +50,19 @@ internal class FcmInviteNotifier(
 
         if (projection is null)
         {
-            logger.LogDebug("FcmInviteNotifier: invite {InviteId} not found, skipping FCM push", invite.Id);
+            logger.LogDebug("FCM push skipped {InviteId} {Phase} {Reason}", invite.Id, "InviteSent", "InviteNotFound");
             return;
         }
 
         if (projection.ReceiverDeleted)
         {
-            logger.LogDebug("FcmInviteNotifier: invite {InviteId} receiver soft-deleted, skipping FCM", invite.Id);
+            logger.LogDebug("FCM push skipped {InviteId} {Phase} {Reason}", invite.Id, "InviteSent", "ReceiverDeleted");
             return;
         }
 
         if (string.IsNullOrEmpty(projection.FcmToken))
         {
-            logger.LogDebug("FcmInviteNotifier: invite {InviteId} receiver has no FCM token, skipping", invite.Id);
+            logger.LogDebug("FCM push skipped {InviteId} {Phase} {Reason}", invite.Id, "InviteSent", "NoFcmToken");
             return;
         }
 
@@ -89,27 +89,26 @@ internal class FcmInviteNotifier(
 
         if (projection is null)
         {
-            logger.LogDebug("FcmInviteNotifier: invite {InviteId} not found, skipping FCM accepted push", invite.Id);
+            logger.LogDebug("FCM push skipped {InviteId} {Phase} {Reason}", invite.Id, "InviteAccepted", "InviteNotFound");
             return;
         }
 
         if (projection.SenderDeleted)
         {
-            logger.LogDebug("FcmInviteNotifier: invite {InviteId} sender soft-deleted, skipping FCM accepted push", invite.Id);
+            logger.LogDebug("FCM push skipped {InviteId} {Phase} {Reason}", invite.Id, "InviteAccepted", "SenderDeleted");
             return;
         }
 
         if (projection.ReceiverDeleted)
         {
-            logger.LogDebug(
-                "FcmInviteNotifier: invite {InviteId} receiver soft-deleted, skipping FCM (would leak Receiver.FirstName)",
-                invite.Id);
+            // Receiver soft-deleted: skipping prevents leaking Receiver.FirstName to Sender via push body.
+            logger.LogDebug("FCM push skipped {InviteId} {Phase} {Reason}", invite.Id, "InviteAccepted", "ReceiverDeleted");
             return;
         }
 
         if (string.IsNullOrEmpty(projection.FcmToken))
         {
-            logger.LogDebug("FcmInviteNotifier: invite {InviteId} sender has no FCM token, skipping accepted push", invite.Id);
+            logger.LogDebug("FCM push skipped {InviteId} {Phase} {Reason}", invite.Id, "InviteAccepted", "NoFcmToken");
             return;
         }
 
@@ -120,14 +119,16 @@ internal class FcmInviteNotifier(
     /// <inheritdoc />
     public virtual Task InviteDeclinedAsync(Invite invite, CancellationToken ct)
     {
-        logger.LogDebug("FcmInviteNotifier: silent decline — no FCM push for invite {InviteId}", invite.Id);
+        // Decline is silent on the client per UC-301; FCM has no push to send.
+        logger.LogDebug("FCM push skipped {InviteId} {Phase} {Reason}", invite.Id, "InviteDeclined", "SilentDecline");
         return Task.CompletedTask;
     }
 
     /// <inheritdoc />
     public virtual Task InviteExpiredAsync(Invite invite, CancellationToken ct)
     {
-        logger.LogDebug("FcmInviteNotifier: expiry FCM push deferred to future iteration for invite {InviteId}", invite.Id);
+        // FCM expiry push deferred until the product opts in (out of MVP scope).
+        logger.LogDebug("FCM push skipped {InviteId} {Phase} {Reason}", invite.Id, "InviteExpired", "ExpiryDeferred");
         return Task.CompletedTask;
     }
 }

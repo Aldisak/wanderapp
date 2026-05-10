@@ -74,7 +74,7 @@ internal sealed class ReviewPromptJob(
 
         if (batch.Count == 0)
         {
-            logger.LogInformation("ReviewPromptJob: no meetups eligible for review prompt.");
+            logger.LogInformation("Job tick {Job} {Result}", "ReviewPrompt", "NoCandidates");
             return;
         }
 
@@ -94,9 +94,8 @@ internal sealed class ReviewPromptJob(
                 }
                 catch (Exception ex)
                 {
-                    logger.LogWarning(ex,
-                        "ReviewPromptJob: FCM failed for UserA {UserAId} on meetup {MeetupId}; continuing.",
-                        row.UserAId, row.MeetupId);
+                    logger.LogWarning(ex, "FCM push failed {MeetupId} {UserId} {Phase}",
+                        row.MeetupId, row.UserAId, "ReviewPrompt");
                 }
             }
 
@@ -111,9 +110,8 @@ internal sealed class ReviewPromptJob(
                 }
                 catch (Exception ex)
                 {
-                    logger.LogWarning(ex,
-                        "ReviewPromptJob: FCM failed for UserB {UserBId} on meetup {MeetupId}; continuing.",
-                        row.UserBId, row.MeetupId);
+                    logger.LogWarning(ex, "FCM push failed {MeetupId} {UserId} {Phase}",
+                        row.MeetupId, row.UserBId, "ReviewPrompt");
                 }
             }
         }
@@ -123,8 +121,7 @@ internal sealed class ReviewPromptJob(
             .Where(m => batchIds.Contains(m.Id))
             .ExecuteUpdateAsync(s => s.SetProperty(m => m.PromptSent, true), ct);
 
-        logger.LogInformation(
-            "ReviewPromptJob: processed {BatchSize} meetup(s), sent {PushCount} push notification(s).",
-            batch.Count, successCount);
+        logger.LogInformation("Job tick {Job} {Result} {BatchSize} {PushCount}",
+            "ReviewPrompt", "Completed", batch.Count, successCount);
     }
 }

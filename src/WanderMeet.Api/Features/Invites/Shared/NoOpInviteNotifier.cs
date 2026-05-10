@@ -12,28 +12,28 @@ internal sealed class NoOpInviteNotifier(ILogger<NoOpInviteNotifier> logger) : I
     /// <inheritdoc />
     public Task InviteSentAsync(Invite invite, CancellationToken ct)
     {
-        logger.LogDebug("Invite {InviteId} sent (no-op notifier)", invite.Id);
+        logger.LogDebug("Notifier (NoOp) invoked {InviteId} {Phase}", invite.Id, "InviteSent");
         return Task.CompletedTask;
     }
 
     /// <inheritdoc />
     public Task InviteAcceptedAsync(Invite invite, Guid meetupId, CancellationToken ct)
     {
-        logger.LogDebug("Invite {InviteId} accepted — meetup {MeetupId} created (no-op notifier)", invite.Id, meetupId);
+        logger.LogDebug("Notifier (NoOp) invoked {InviteId} {MeetupId} {Phase}", invite.Id, meetupId, "InviteAccepted");
         return Task.CompletedTask;
     }
 
     /// <inheritdoc />
     public Task InviteDeclinedAsync(Invite invite, CancellationToken ct)
     {
-        logger.LogDebug("Invite {InviteId} declined (no-op notifier)", invite.Id);
+        logger.LogDebug("Notifier (NoOp) invoked {InviteId} {Phase}", invite.Id, "InviteDeclined");
         return Task.CompletedTask;
     }
 
     /// <inheritdoc />
     public Task InviteExpiredAsync(Invite invite, CancellationToken ct)
     {
-        logger.LogDebug("Invite {InviteId} expired (no-op notifier)", invite.Id);
+        logger.LogDebug("Notifier (NoOp) invoked {InviteId} {Phase}", invite.Id, "InviteExpired");
         return Task.CompletedTask;
     }
 }

@@ -95,7 +95,7 @@ internal sealed class DeletePhotoEndpoint(
         }
         catch (Exception ex) when (ex is not OperationCanceledException)
         {
-            logger.LogWarning(ex, "Best-effort blob delete failed for {PhotoId}", photo.Id);
+            logger.LogWarning(ex, "Photo blob delete failed (best-effort) {PhotoId} {UserId}", photo.Id, user.Id);
         }
 
         await Send.NoContentAsync(ct);

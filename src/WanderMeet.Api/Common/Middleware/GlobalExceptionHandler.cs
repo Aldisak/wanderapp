@@ -12,12 +12,11 @@ public sealed class GlobalExceptionHandler(ILogger<GlobalExceptionHandler> logge
     /// <inheritdoc />
     public ValueTask<bool> TryHandleAsync(HttpContext httpContext, Exception exception, CancellationToken cancellationToken)
     {
-        logger.LogError(
-            exception,
-            "Unhandled exception while processing {Method} {Path} (TraceId={TraceId})",
+        // CorrelationId is already on the LogContext via CorrelationIdMiddleware;
+        // Path is the route path (no query string) so it doesn't leak token-style query params.
+        logger.LogError(exception, "Request failed {Method} {Path}",
             httpContext.Request.Method,
-            httpContext.Request.Path,
-            httpContext.TraceIdentifier);
+            httpContext.Request.Path);
 
         return ValueTask.FromResult(false);
     }

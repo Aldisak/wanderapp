@@ -27,88 +27,52 @@ internal sealed class CompositeInviteNotifier(
     /// <inheritdoc />
     public async Task InviteSentAsync(Invite invite, CancellationToken ct)
     {
-        try
-        {
-            await signalRNotifier.InviteSentAsync(invite, ct);
-        }
-        catch (Exception ex)
-        {
-            logger.LogWarning(ex, "[CompositeInviteNotifier] SignalR failed for InviteSent invite {InviteId}", invite.Id);
-        }
-
-        try
-        {
-            await fcmNotifier.InviteSentAsync(invite, ct);
-        }
-        catch (Exception ex)
-        {
-            logger.LogWarning(ex, "[CompositeInviteNotifier] FCM failed for InviteSent invite {InviteId}", invite.Id);
-        }
+        await InvokeChild("SignalR", "InviteSent", invite.Id,
+            () => signalRNotifier.InviteSentAsync(invite, ct));
+        await InvokeChild("FCM", "InviteSent", invite.Id,
+            () => fcmNotifier.InviteSentAsync(invite, ct));
     }
 
     /// <inheritdoc />
     public async Task InviteAcceptedAsync(Invite invite, Guid meetupId, CancellationToken ct)
     {
-        try
-        {
-            await signalRNotifier.InviteAcceptedAsync(invite, meetupId, ct);
-        }
-        catch (Exception ex)
-        {
-            logger.LogWarning(ex, "[CompositeInviteNotifier] SignalR failed for InviteAccepted invite {InviteId}", invite.Id);
-        }
-
-        try
-        {
-            await fcmNotifier.InviteAcceptedAsync(invite, meetupId, ct);
-        }
-        catch (Exception ex)
-        {
-            logger.LogWarning(ex, "[CompositeInviteNotifier] FCM failed for InviteAccepted invite {InviteId}", invite.Id);
-        }
+        await InvokeChild("SignalR", "InviteAccepted", invite.Id,
+            () => signalRNotifier.InviteAcceptedAsync(invite, meetupId, ct));
+        await InvokeChild("FCM", "InviteAccepted", invite.Id,
+            () => fcmNotifier.InviteAcceptedAsync(invite, meetupId, ct));
     }
 
     /// <inheritdoc />
     public async Task InviteDeclinedAsync(Invite invite, CancellationToken ct)
     {
-        try
-        {
-            await signalRNotifier.InviteDeclinedAsync(invite, ct);
-        }
-        catch (Exception ex)
-        {
-            logger.LogWarning(ex, "[CompositeInviteNotifier] SignalR failed for InviteDeclined invite {InviteId}", invite.Id);
-        }
-
-        try
-        {
-            await fcmNotifier.InviteDeclinedAsync(invite, ct);
-        }
-        catch (Exception ex)
-        {
-            logger.LogWarning(ex, "[CompositeInviteNotifier] FCM failed for InviteDeclined invite {InviteId}", invite.Id);
-        }
+        await InvokeChild("SignalR", "InviteDeclined", invite.Id,
+            () => signalRNotifier.InviteDeclinedAsync(invite, ct));
+        await InvokeChild("FCM", "InviteDeclined", invite.Id,
+            () => fcmNotifier.InviteDeclinedAsync(invite, ct));
     }
 
     /// <inheritdoc />
     public async Task InviteExpiredAsync(Invite invite, CancellationToken ct)
     {
-        try
-        {
-            await signalRNotifier.InviteExpiredAsync(invite, ct);
-        }
-        catch (Exception ex)
-        {
-            logger.LogWarning(ex, "[CompositeInviteNotifier] SignalR failed for InviteExpired invite {InviteId}", invite.Id);
-        }
+        await InvokeChild("SignalR", "InviteExpired", invite.Id,
+            () => signalRNotifier.InviteExpiredAsync(invite, ct));
+        await InvokeChild("FCM", "InviteExpired", invite.Id,
+            () => fcmNotifier.InviteExpiredAsync(invite, ct));
+    }
 
+    /// <summary>
+    /// Runs <paramref name="action"/> and logs a Warning with the failing notifier and phase
+    /// if it throws. The exception is swallowed — sibling notifiers must still fire.
+    /// </summary>
+    private async Task InvokeChild(string notifier, string phase, Guid inviteId, Func<Task> action)
+    {
         try
         {
-            await fcmNotifier.InviteExpiredAsync(invite, ct);
+            await action();
         }
         catch (Exception ex)
         {
-            logger.LogWarning(ex, "[CompositeInviteNotifier] FCM failed for InviteExpired invite {InviteId}", invite.Id);
+            logger.LogWarning(ex, "Notifier child failed {Notifier} {Phase} {InviteId}", notifier, phase, inviteId);
         }
     }
 }

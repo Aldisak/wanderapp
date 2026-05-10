@@ -101,7 +101,7 @@ internal sealed class DeclineInviteEndpoint(
         }
         catch (Exception ex)
         {
-            logger.LogWarning(ex, "IInviteNotifier.InviteDeclinedAsync failed for invite {InviteId}; continuing.", invite.Id);
+            logger.LogWarning(ex, "Notifier failed {InviteId} {Phase}", invite.Id, "InviteDeclined");
         }
 
         // Project fresh DTO via AsNoTracking query (mirrors AcceptInviteEndpoint).

@@ -58,7 +58,7 @@ internal sealed class AzureBlobStorageService : IBlobStorageService
             var containerClient = _serviceClient!.GetBlobContainerClient(_options.ContainerName);
             _initTask = containerClient.CreateIfNotExistsAsync(PublicAccessType.None, cancellationToken: ct);
             await _initTask;
-            _logger.LogInformation("Ensured blob container {ContainerName} exists", _options.ContainerName);
+            _logger.LogInformation("Blob container ensured {ContainerName}", _options.ContainerName);
         }
         else
         {
@@ -101,7 +101,7 @@ internal sealed class AzureBlobStorageService : IBlobStorageService
         var sasUri = blobClient.GenerateSasUri(sasBuilder);
         var blobUrl = blobClient.Uri.ToString();
 
-        _logger.LogInformation("Generated write SAS for blob path in container {ContainerName}", _options.ContainerName);
+        _logger.LogInformation("Blob write SAS issued {ContainerName}", _options.ContainerName);
 
         return new BlobSasResult(sasUri, expiresOn, blobUrl);
     }

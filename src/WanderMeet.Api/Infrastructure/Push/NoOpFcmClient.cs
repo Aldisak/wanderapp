@@ -14,9 +14,7 @@ internal sealed class NoOpFcmClient(ILogger<NoOpFcmClient> logger) : IFcmClient
     public Task SendAsync(string fcmToken, string title, string body, CancellationToken ct)
     {
         var tokenHash = ComputeTokenHash(fcmToken);
-        logger.LogDebug(
-            "NoOpFcmClient: skipping push title={Title} body={Body} tokenHash={TokenHash}",
-            title, body, tokenHash);
+        logger.LogDebug("FCM push (NoOp) {Title} {Body} {TokenHash}", title, body, tokenHash);
 
         return Task.CompletedTask;
     }

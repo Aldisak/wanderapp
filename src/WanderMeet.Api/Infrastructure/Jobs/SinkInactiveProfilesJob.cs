@@ -29,8 +29,7 @@ internal sealed class SinkInactiveProfilesJob(
             .Where(u => u.IsOpenToday && u.LastActiveAt < threshold)
             .ExecuteUpdateAsync(s => s.SetProperty(u => u.IsOpenToday, false), ct);
 
-        logger.LogInformation(
-            "SinkInactiveProfilesJob: flipped {Count} users to IsOpenToday=false.",
-            affected);
+        logger.LogInformation("Job tick {Job} {Result} {Count}",
+            "SinkInactiveProfiles", "Completed", affected);
     }
 }

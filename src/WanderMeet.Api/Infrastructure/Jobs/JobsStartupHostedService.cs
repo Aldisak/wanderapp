@@ -16,7 +16,7 @@ internal sealed class JobsStartupHostedService(
     /// </summary>
     public Task StartAsync(CancellationToken cancellationToken)
     {
-        logger.LogInformation("JobsStartupHostedService: registering recurring jobs.");
+        logger.LogInformation("Recurring jobs registering");
 
         recurringJobs.AddOrUpdate<InviteExpiryJob>(
             "invite-expiry",

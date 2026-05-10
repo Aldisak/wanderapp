@@ -21,8 +21,7 @@ internal sealed class FirebasePushStartupLogger(
 
         if (string.IsNullOrWhiteSpace(credentialsPath) || !File.Exists(credentialsPath))
         {
-            logger.LogWarning(
-                "[FCM] Firebase credentials missing — push notifications disabled (using NoOp client).");
+            logger.LogWarning("FCM credentials missing; using NoOp client");
         }
 
         return Task.CompletedTask;

@@ -39,7 +39,7 @@ internal sealed class InviteExpiryJob(
 
         if (expired.Count == 0)
         {
-            logger.LogInformation("InviteExpiryJob: no pending invites to expire.");
+            logger.LogInformation("Job tick {Job} {Result}", "InviteExpiry", "NoCandidates");
             return;
         }
 
@@ -60,12 +60,10 @@ internal sealed class InviteExpiryJob(
             }
             catch (Exception ex)
             {
-                logger.LogWarning(ex,
-                    "InviteExpiryJob: notifier failed for invite {InviteId}; continuing.",
-                    invite.Id);
+                logger.LogWarning(ex, "Notifier failed {InviteId} {Phase}", invite.Id, "InviteExpired");
             }
         }
 
-        logger.LogInformation("InviteExpiryJob: expired {Count} invite(s).", expired.Count);
+        logger.LogInformation("Job tick {Job} {Result} {Count}", "InviteExpiry", "Completed", expired.Count);
     }
 }

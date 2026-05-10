@@ -21,10 +21,26 @@ using WanderMeet.Api.Infrastructure.SignalR;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Host.UseSerilog((ctx, cfg) => cfg
-    .ReadFrom.Configuration(ctx.Configuration)
-    .Enrich.FromLogContext()
-    .WriteTo.Console());
+builder.Host.UseSerilog((ctx, cfg) =>
+{
+    cfg.ReadFrom.Configuration(ctx.Configuration)
+        .Enrich.FromLogContext()
+        .Enrich.WithProperty("Application", "WanderMeet.Api")
+        .Enrich.WithProperty("Environment", ctx.HostingEnvironment.EnvironmentName);
+
+    if (ctx.HostingEnvironment.IsDevelopment())
+    {
+        // Human-readable single-line console output. SourceContext (class name), CorrelationId
+        // (set by CorrelationIdMiddleware), and the structured properties all surface here.
+        cfg.WriteTo.Console(outputTemplate:
+            "[{Timestamp:HH:mm:ss.fff} {Level:u3}] [{SourceContext}] {Message:lj} {Properties:j}{NewLine}{Exception}");
+    }
+    else
+    {
+        // Compact JSON for prod — App Insights / Loki / Datadog index every property.
+        cfg.WriteTo.Console(new Serilog.Formatting.Compact.CompactJsonFormatter());
+    }
+});
 
 builder.Services.AddSingleton(TimeProvider.System);
 
@@ -255,6 +271,9 @@ var app = builder.Build();
 
 app.UseForwardedHeaders();
 app.UseMiddleware<CorrelationIdMiddleware>();
+// Per-request structured log line (RequestMethod, RequestPath, StatusCode, Elapsed).
+// Wired AFTER the correlation-id middleware so each request log carries the CorrelationId.
+app.UseSerilogRequestLogging();
 app.UseExceptionHandler();
 
 if (!app.Environment.IsDevelopment())

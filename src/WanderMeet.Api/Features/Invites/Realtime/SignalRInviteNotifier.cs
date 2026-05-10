@@ -20,7 +20,7 @@ internal class SignalRInviteNotifier(
     /// <inheritdoc />
     public virtual async Task InviteSentAsync(Invite invite, CancellationToken ct)
     {
-        logger.LogDebug("SignalRInviteNotifier: pushing InviteReceived for invite {InviteId}", invite.Id);
+        logger.LogDebug("SignalR push enqueued {InviteId} {Phase}", invite.Id, "InviteSent");
 
         var data = await dbContext.Invites
             .AsNoTracking()
@@ -40,7 +40,8 @@ internal class SignalRInviteNotifier(
 
         if (data is null || data.SenderDeleted)
         {
-            logger.LogDebug("SignalRInviteNotifier: invite {InviteId} sender missing or soft-deleted; skipping InviteReceived push", invite.Id);
+            var reason = data is null ? "InviteNotFound" : "SenderDeleted";
+            logger.LogDebug("SignalR push skipped {InviteId} {Phase} {Reason}", invite.Id, "InviteSent", reason);
             return;
         }
 
@@ -60,7 +61,7 @@ internal class SignalRInviteNotifier(
     /// <inheritdoc />
     public virtual async Task InviteAcceptedAsync(Invite invite, Guid meetupId, CancellationToken ct)
     {
-        logger.LogDebug("SignalRInviteNotifier: pushing InviteAccepted for invite {InviteId}", invite.Id);
+        logger.LogDebug("SignalR push enqueued {InviteId} {Phase}", invite.Id, "InviteAccepted");
 
         var dto = new InviteHubAcceptedDto(invite.Id, meetupId, invite.RespondedAt!.Value);
 
@@ -72,7 +73,7 @@ internal class SignalRInviteNotifier(
     /// <inheritdoc />
     public virtual async Task InviteDeclinedAsync(Invite invite, CancellationToken ct)
     {
-        logger.LogDebug("SignalRInviteNotifier: pushing InviteDeclined for invite {InviteId}", invite.Id);
+        logger.LogDebug("SignalR push enqueued {InviteId} {Phase}", invite.Id, "InviteDeclined");
 
         var dto = new InviteHubDeclinedDto(invite.Id);
 
@@ -84,7 +85,7 @@ internal class SignalRInviteNotifier(
     /// <inheritdoc />
     public virtual async Task InviteExpiredAsync(Invite invite, CancellationToken ct)
     {
-        logger.LogDebug("SignalRInviteNotifier: pushing InviteExpired for invite {InviteId}", invite.Id);
+        logger.LogDebug("SignalR push enqueued {InviteId} {Phase}", invite.Id, "InviteExpired");
 
         var dto = new InviteHubExpiredDto(invite.Id);
 

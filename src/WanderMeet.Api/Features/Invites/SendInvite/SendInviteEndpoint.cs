@@ -191,7 +191,7 @@ internal sealed class SendInviteEndpoint(
         }
         catch (Exception ex)
         {
-            logger.LogWarning(ex, "IInviteNotifier.InviteSentAsync failed for invite {InviteId}; continuing.", invite.Id);
+            logger.LogWarning(ex, "Notifier failed {InviteId} {Phase}", invite.Id, "InviteSent");
         }
 
         var callerPhotoUrl = await dbContext.UserPhotos

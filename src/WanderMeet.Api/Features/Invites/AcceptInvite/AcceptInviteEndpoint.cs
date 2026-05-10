@@ -116,7 +116,7 @@ internal sealed class AcceptInviteEndpoint(
         }
         catch (Exception ex)
         {
-            logger.LogWarning(ex, "IInviteNotifier.InviteAcceptedAsync failed for invite {InviteId}; continuing.", invite.Id);
+            logger.LogWarning(ex, "Notifier failed {InviteId} {Phase}", invite.Id, "InviteAccepted");
         }
 
         // Project fresh DTO via AsNoTracking query

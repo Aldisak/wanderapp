@@ -23,7 +23,7 @@ public class FirebasePushStartupLoggerTests
 
         capturingLogger.LogEntries.Should().Contain(entry =>
             entry.Level == LogLevel.Warning &&
-            entry.Message.Contains("[FCM] Firebase credentials missing — push notifications disabled (using NoOp client)."),
+            entry.Message.Contains("FCM credentials missing"),
             because: "missing credentials must emit the exact warning text through the real ILogger pipeline");
     }
 
@@ -39,7 +39,7 @@ public class FirebasePushStartupLoggerTests
 
         capturingLogger.LogEntries.Should().Contain(entry =>
             entry.Level == LogLevel.Warning &&
-            entry.Message.Contains("[FCM] Firebase credentials missing — push notifications disabled (using NoOp client)."),
+            entry.Message.Contains("FCM credentials missing"),
             because: "a path that does not exist must emit the exact warning text");
     }
 

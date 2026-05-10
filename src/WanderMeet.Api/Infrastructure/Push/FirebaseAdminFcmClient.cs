@@ -24,7 +24,7 @@ internal sealed class FirebaseAdminFcmClient(
     {
         if (!EnsureInitialised())
         {
-            logger.LogWarning("[FCM] Firebase not initialised — message dropped");
+            logger.LogWarning("FCM message dropped {Reason}", "InitFailed");
             return;
         }
 
@@ -40,7 +40,7 @@ internal sealed class FirebaseAdminFcmClient(
         }
         catch (FirebaseMessagingException ex) when (ex.MessagingErrorCode == MessagingErrorCode.Unregistered)
         {
-            logger.LogWarning("[FCM] token unregistered (404) — message dropped");
+            logger.LogWarning("FCM message dropped {Reason}", "TokenUnregistered");
         }
         // All other FirebaseMessagingException values propagate; the composite's per-child catch records the failure.
     }
@@ -70,8 +70,7 @@ internal sealed class FirebaseAdminFcmClient(
             catch (Exception ex)
             {
                 _initFailed = true;
-                logger.LogError(ex,
-                    "[FCM] Firebase init failed — push notifications disabled for this process lifetime.");
+                logger.LogError(ex, "FCM init failed; push disabled for process lifetime");
                 return false;
             }
         }

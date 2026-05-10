@@ -46,7 +46,7 @@ public class FirebaseAdminFcmClientTests
         initializer.Calls.Should().Be(1);
         capturingLogger.LogEntries.Should().Contain(entry =>
             entry.Level == LogLevel.Error &&
-            entry.Message.Contains("[FCM] Firebase init failed — push notifications disabled for this process lifetime."),
+            entry.Message.Contains("FCM init failed"),
             because: "first init failure must log Error exactly once");
     }
 
@@ -70,7 +70,7 @@ public class FirebaseAdminFcmClientTests
 
         capturingLogger.LogEntries.Should().Contain(entry =>
             entry.Level == LogLevel.Warning &&
-            entry.Message.Contains("[FCM] Firebase not initialised — message dropped"),
+            entry.Message.Contains("FCM message dropped"),
             because: "calls after init failure must log Warning and skip");
     }
 }
