@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100" height="100">
+  <defs>
+    <mask id="ml">
+      <rect width="100" height="100" fill="white"/>
+      <circle cx="55.32" cy="50" r="32.76" fill="black"/>
+    </mask>
+    <mask id="mr">
+      <rect width="100" height="100" fill="white"/>
+      <circle cx="44.68" cy="50" r="32.76" fill="black"/>
+    </mask>
+  </defs>
+  <circle cx="36" cy="50" r="42" fill="#8E2710" mask="url(#ml)"/>
+  <circle cx="64" cy="50" r="42" fill="#8E2710" mask="url(#mr)"/>
+  <circle cx="50" cy="50" r="4.5" fill="#1F9985"/>
+</svg>
